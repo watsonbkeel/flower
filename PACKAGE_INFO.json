@@ -1,0 +1,9 @@
+{
+  "version": "2.2.2",
+  "name": "Server-Integrated Baseline",
+  "spec_sha256": "4481d48605aec47660d2cdefb7a004ed2169bb8531302ecdf803c3c12718cf95",
+  "generated_date": "2026-09-13",
+  "files": 52,
+  "skill_validation": "pass-static",
+  "server_audit_reports": 8
+}

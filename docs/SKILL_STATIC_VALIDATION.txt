@@ -1,0 +1,8 @@
+OK .agents/skills/building-cloud-control-plane/SKILL.md words=294
+OK .agents/skills/building-raspberry-pi-agent/SKILL.md words=242
+OK .agents/skills/building-wechat-miniapp/SKILL.md words=245
+OK .agents/skills/finishing-one-goal-delivery/SKILL.md words=253
+OK .agents/skills/implementing-safety-critical-watering/SKILL.md words=266
+OK .agents/skills/integrating-real-hardware/SKILL.md words=251
+OK .agents/skills/using-smart-guardian-baseline/SKILL.md words=236
+All skill files passed static validation.
