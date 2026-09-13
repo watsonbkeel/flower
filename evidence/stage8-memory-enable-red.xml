@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.636" timestamp="2026-09-13T18:40:34.529873+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_memory_concurrency" name="test_enable_rejects_rule_removed_by_concurrent_edit" time="0.537"><failure message="assert 200 == 409&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f747cff23c0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTc4MzR9.yF71LPderGcE7nSN1JDdV9JN6Ws4LMgDlAPNybVvUyA'}, 'device_id': '19de49ff-22f3-4647-9d23-657f28bd7deb', ...}
+
+    def test_enable_rejects_rule_removed_by_concurrent_edit(system):
+        engine, sessions = system["app"].state.engine, system["app"].state.sessions
+        if engine.dialect.name != "postgresql":
+            pytest.skip("PostgreSQL row lock contention test")
+        client, headers = system["client"], system["user_headers"]
+        mid = enabled_memory(system)
+        client.put(f"/api/v1/memories/{mid}/enabled", headers=headers, json={"enabled": False})
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with sessions.begin() as db:
+                memory = db.scalar(select(Memory).where(Memory.id == mid).with_for_update())
+                memory.original_experience = "Unconfirmed replacement"
+                memory.structured_rule, memory.rule_confirmed = None, False
+                refresh_fallback_for_plant(db, system["settings"], memory.plant_id)
+                blocker = db.scalar(text("SELECT pg_backend_pid()"))
+                future = pool.submit(
+                    client.put,
+                    f"/api/v1/memories/{mid}/enabled",
+                    headers=headers,
+                    json={"enabled": True, "confirmed": True},
+                )
+                wait_for_lock(engine, blocker, future)
+            result = future.result(timeout=10)
+&gt;       assert result.status_code == 409
+E       assert 200 == 409
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+backend/tests/test_memory_concurrency.py:100: AssertionError</failure></testcase></testsuite></testsuites>

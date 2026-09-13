@@ -107,8 +107,11 @@ def auto_mode(
     return {"auto_mode": plant.auto_mode, "device_sync": "pending"}
 
 
-def owned_memory(db, memory_id, user_id):
-    memory = db.scalar(select(Memory).where(Memory.id == str(memory_id), Memory.user_id == user_id))
+def owned_memory(db, memory_id, user_id, *, for_update=False):
+    query = select(Memory).where(Memory.id == str(memory_id), Memory.user_id == user_id)
+    if for_update:
+        query = query.with_for_update()
+    memory = db.scalar(query)
     if not memory:
         raise DomainError("NOT_FOUND", status=404)
     return memory
@@ -164,7 +167,7 @@ def update_memory(
     user=Depends(require_user),
     db=Depends(get_db),
 ):
-    memory = owned_memory(db, memory_id, user.id)
+    memory = owned_memory(db, memory_id, user.id, for_update=True)
     previous_plant_id = memory.plant_id if memory.rule_enabled else None
     apply_memory(db, memory, data, user)
     refresh_fallback_for_plant(db, request.app.state.settings, previous_plant_id)
@@ -200,7 +203,7 @@ def enable(
     user=Depends(require_user),
     db=Depends(get_db),
 ):
-    memory = owned_memory(db, memory_id, user.id)
+    memory = owned_memory(db, memory_id, user.id, for_update=True)
     if data.enabled and (
         not memory.structured_rule or not (memory.rule_confirmed or data.confirmed)
     ):

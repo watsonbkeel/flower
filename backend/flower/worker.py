@@ -166,7 +166,9 @@ class Worker:
                 if result["status"] == "sent" and result["source_type"] == "real":
                     item.pushed_at = utcnow()
             else:
-                memory = db.get(Memory, job.target_id)
+                memory = db.scalar(
+                    select(Memory).where(Memory.id == job.target_id).with_for_update()
+                )
                 if memory.original_experience != content:
                     raise ValueError("MEMORY_CHANGED")
                 previous_plant_id = memory.plant_id if memory.rule_enabled else None
