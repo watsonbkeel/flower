@@ -51,3 +51,18 @@ test('the last explicit manual edit or candidate choice determines submitted spe
   assert.equal(input.calls[1].scientific_name, 'New manual species');
   assert.equal(input.calls[1].input_method, 'manual');
 });
+
+test('capture and recognition progress replace old candidates without changing manual input', async () => {
+  const {page, input} = fixture();
+  await page.load();
+  page.field({currentTarget: {dataset: {field: 'scientificName'}}, detail: {value: 'Manual species'}});
+  for (const [status, label] of [['capture_pending', '等待拍照'], ['capture_executing', '正在拍照'],
+    ['queued', '等待识别'], ['running', '正在识别'], ['failed', '识别失败']]) {
+    input.recognition = {status, image_id: 'new-image', result: null};
+    await page.load();
+    assert.match(page.data.recognitionText, new RegExp(label));
+    assert.equal(page.data.selected, -1);
+    assert.equal(page.data.candidates.length, 0);
+    assert.equal(page.data.scientificName, 'Manual species');
+  }
+});

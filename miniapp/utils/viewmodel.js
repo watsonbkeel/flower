@@ -11,7 +11,7 @@
     RATE_LIMITED: '操作频繁，请稍后重试', BELOW_MINIMUM_DOSE: '低于最低可控剂量',
     WECHAT_NOT_CONFIGURED: '微信登录尚未配置', PROVIDER_UNAVAILABLE: '知识服务暂不可用'};
   function commandLabel(status, action) {
-    if (action === 'capture') return {pending: '等待拍照', claimed: '准备拍照', executing: '正在拍照', succeeded: '拍照完成'}[status] || commands[status] || '暂无指令';
+    if (action === 'capture') return {pending: '等待拍照', claimed: '准备拍照', executing: '正在拍照', succeeded: '拍照完成', failed: '拍照失败', expired: '拍照领取已过期', timed_out: '拍照执行超时', cancelled: '拍照已取消'}[status] || '暂无拍照指令';
     return commands[status] || '暂无补水指令';
   }
   function coverageLabel(series) {
@@ -25,6 +25,12 @@
       && !(device.fault_codes || []).some(code => !['BLE_STALE', 'CAMERA_UNAVAILABLE'].includes(code)));
   }
   function faultLabel(code) { return faults[code] || code || '暂无异常'; }
+  function recognitionLabel(status) {
+    if (status && status.startsWith('capture_')) return commandLabel(status.slice(8), 'capture');
+    return {empty: '等待拍照或手动填写植物名称', queued: '等待识别', running: '正在识别',
+      succeeded: '识别完成，请确认品种', failed: '识别失败，请重新拍照或手动填写植物名称',
+      image_missing: '未收到本次照片，请重新拍照'}[status] || '';
+  }
   function careProfileView(profile, now = Date.now()) {
     const expiry = Date.parse(profile && profile.valid_until);
     let statusText = '养护卡待确认';
@@ -69,7 +75,7 @@
       commandText: commandLabel(data.command && data.command.status, data.command && data.command.action),
       soilText: device && Number.isFinite(device.soil_moisture) ? device.soil_moisture.toFixed(0) : '--'};
   }
-  const api = {sourceNames, commandLabel, coverageLabel, canWater, faultLabel, careProfileView, weatherView, chartSegments, statusView};
+  const api = {sourceNames, commandLabel, recognitionLabel, coverageLabel, canWater, faultLabel, careProfileView, weatherView, chartSegments, statusView};
   if (typeof module !== 'undefined') module.exports = api;
   else root.FlowerView = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -1,0 +1,32 @@
+{
+  "source_type": "mock",
+  "report": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "old_result_cleared": "PASS",
+      "automatic_result_refresh": "PASS",
+      "explicit_choice_preserved": "PASS",
+      "camera_failure": "PASS",
+      "overflow": "PASS",
+      "errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "old_result_cleared": "PASS",
+      "automatic_result_refresh": "PASS",
+      "explicit_choice_preserved": "PASS",
+      "camera_failure": "PASS",
+      "overflow": "PASS",
+      "errors": []
+    },
+    {
+      "live_mock_camera_worker_recognition": "PASS"
+    }
+  ]
+}

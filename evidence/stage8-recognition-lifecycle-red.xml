@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="12" skipped="0" tests="12" time="2.504" timestamp="2026-09-13T18:52:05.138641+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_recognition_lifecycle" name="test_latest_photo_job_never_reuses_previous_photo_candidates[queued]" time="0.497"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f5be2270&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjV9.UiTjJLdINPbaF_s2Z-P5aFrOh7mJ59NJvONmEvR2q8U'}, 'device_id': '2ec1a995-434e-4753-b0b4-33658c2eb770', ...}
+status = 'queued'
+
+    @pytest.mark.parametrize("status", ["queued", "running", "failed"])
+    def test_latest_photo_job_never_reuses_previous_photo_candidates(system, status):
+        old_result(system)
+        latest = upload(system).json()
+        with system["app"].state.sessions.begin() as db:
+            db.get(Job, latest["job_id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:31: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_latest_photo_job_never_reuses_previous_photo_candidates[running]" time="0.166"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f4b2dbd0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjV9.KM_fernOTeUJad5IrxYVPsuRmWPM4LjvbNGkp18xtyQ'}, 'device_id': '238a4877-da3c-4138-af37-7f5692d0148a', ...}
+status = 'running'
+
+    @pytest.mark.parametrize("status", ["queued", "running", "failed"])
+    def test_latest_photo_job_never_reuses_previous_photo_candidates(system, status):
+        old_result(system)
+        latest = upload(system).json()
+        with system["app"].state.sessions.begin() as db:
+            db.get(Job, latest["job_id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:31: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_latest_photo_job_never_reuses_previous_photo_candidates[failed]" time="0.163"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f5b4ed50&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjV9.P0mvM6UzDnGehH0G1PbX-5d97yYEWuxQF2TECigIaKc'}, 'device_id': 'b721730b-45f0-42ff-9fab-19a19bf44d9c', ...}
+status = 'failed'
+
+    @pytest.mark.parametrize("status", ["queued", "running", "failed"])
+    def test_latest_photo_job_never_reuses_previous_photo_candidates(system, status):
+        old_result(system)
+        latest = upload(system).json()
+        with system["app"].state.sessions.begin() as db:
+            db.get(Job, latest["job_id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:31: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_retake_status_never_presents_an_old_result[pending]" time="0.166"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f43d7250&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjZ9.wnstMchq0_e4DBcw_vsrZPmEPy5cViZ8aHoR49UP5-c'}, 'device_id': '1de5bec9-ef36-44ec-8291-797e85187dcb', ...}
+status = 'pending'
+
+    @pytest.mark.parametrize(
+        "status", ["pending", "claimed", "executing", "failed", "expired", "timed_out", "cancelled"]
+    )
+    def test_retake_status_never_presents_an_old_result(system, status):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "retake"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            db.get(Command, capture["id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_retake_status_never_presents_an_old_result[claimed]" time="0.166"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f4b2f750&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjZ9.esGFiwLr8d-ZkklMeO-ngyaFjmeCQAkulVPfxQRZraA'}, 'device_id': '449eb77f-a366-42e3-adb3-20ff178aa4b2', ...}
+status = 'claimed'
+
+    @pytest.mark.parametrize(
+        "status", ["pending", "claimed", "executing", "failed", "expired", "timed_out", "cancelled"]
+    )
+    def test_retake_status_never_presents_an_old_result(system, status):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "retake"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            db.get(Command, capture["id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_retake_status_never_presents_an_old_result[executing]" time="0.186"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f2dea210&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjZ9.SwFig0yegI15pRZokTa2_IQr4H757J8Qm9l4gKnA8bk'}, 'device_id': '4c02d5c0-c026-42e6-8f9f-aa3839fd82af', ...}
+status = 'executing'
+
+    @pytest.mark.parametrize(
+        "status", ["pending", "claimed", "executing", "failed", "expired", "timed_out", "cancelled"]
+    )
+    def test_retake_status_never_presents_an_old_result(system, status):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "retake"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            db.get(Command, capture["id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_retake_status_never_presents_an_old_result[failed]" time="0.164"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f2cc7ed0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjZ9.Lv_YgnqxY4vSFDALzA_xWM_mK2jMjmnC-h9afwkxRNY'}, 'device_id': '2690f4a4-3fa3-4a14-ae10-96df6e94d22c', ...}
+status = 'failed'
+
+    @pytest.mark.parametrize(
+        "status", ["pending", "claimed", "executing", "failed", "expired", "timed_out", "cancelled"]
+    )
+    def test_retake_status_never_presents_an_old_result(system, status):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "retake"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            db.get(Command, capture["id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_retake_status_never_presents_an_old_result[expired]" time="0.181"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f2a49f90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1MjZ9.AHUKi9DkGHmeQ2z7YlsKM-Z-Arf4T4y6_4ZRz_N-YUk'}, 'device_id': '56d8f390-7761-4f89-83d6-16198ac0e107', ...}
+status = 'expired'
+
+    @pytest.mark.parametrize(
+        "status", ["pending", "claimed", "executing", "failed", "expired", "timed_out", "cancelled"]
+    )
+    def test_retake_status_never_presents_an_old_result(system, status):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "retake"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            db.get(Command, capture["id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_retake_status_never_presents_an_old_result[timed_out]" time="0.174"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f2925a90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1Mjd9.3J6T3MxNI3S8z1JTmRZ2KK20J-v20Oc2MfJPGsOHDEY'}, 'device_id': 'a6f2f1e8-28e7-4569-b963-81933a7b7ca2', ...}
+status = 'timed_out'
+
+    @pytest.mark.parametrize(
+        "status", ["pending", "claimed", "executing", "failed", "expired", "timed_out", "cancelled"]
+    )
+    def test_retake_status_never_presents_an_old_result(system, status):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "retake"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            db.get(Command, capture["id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_retake_status_never_presents_an_old_result[cancelled]" time="0.167"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f2827b10&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1Mjd9.qdynQygOxO1qULAFriJbAPt-qmyBicW-LK78FfqaDbo'}, 'device_id': 'ceaba1c7-bb7b-40e7-9ac2-baa26f6fe764', ...}
+status = 'cancelled'
+
+    @pytest.mark.parametrize(
+        "status", ["pending", "claimed", "executing", "failed", "expired", "timed_out", "cancelled"]
+    )
+    def test_retake_status_never_presents_an_old_result(system, status):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "retake"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            db.get(Command, capture["id"]).status = status
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_capture_result_is_limited_to_its_execution_window_and_excludes_memory_photos" time="0.165"><failure message="KeyError: 'status'">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f2825bd0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1Mjd9.0-1GNKedRSn0fQsWOK4LW2uMBrn49lYll-l9YzksfZ4'}, 'device_id': '1e0e5134-f5bd-426b-b2ea-45d672f63802', ...}
+
+    def test_capture_result_is_limited_to_its_execution_window_and_excludes_memory_photos(system):
+        old = old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "window"},
+            )
+            .json()
+        )
+        started = utcnow()
+        with system["app"].state.sessions.begin() as db:
+            command = db.get(Command, capture["id"])
+            command.status, command.started_at = "succeeded", started
+            command.finished_at = started + timedelta(seconds=10)
+            source = db.get(PlantImage, old["image_id"])
+            for offset, kind in [(1, "whole"), (2, "memory"), (20, "whole")]:
+                image = PlantImage(
+                    device_id=source.device_id,
+                    plant_id=source.plant_id,
+                    file_path=f"mock/{offset}.jpg",
+                    image_type=kind,
+                    source_type="mock",
+                    recognition_result=source.recognition_result,
+                    created_at=started + timedelta(seconds=offset),
+                )
+                db.add(image)
+                db.flush()
+                if offset == 1:
+                    expected = image.id
+        value = recognition(system)
+&gt;       assert value["status"] == "succeeded"
+               ^^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+backend/tests/test_recognition_lifecycle.py:89: KeyError</failure></testcase><testcase classname="backend.tests.test_recognition_lifecycle" name="test_successful_capture_without_images_is_reported_as_missing" time="0.174"><failure message="AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fa6f269da90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg1Mjd9.mS_-jt6zcdwtTg0O-qqpwbtfutCzURQWf3d7eSM0uFk'}, 'device_id': '447155d5-8669-4d23-9625-7005a7d4cf83', ...}
+
+    def test_successful_capture_without_images_is_reported_as_missing(system):
+        old_result(system)
+        capture = (
+            system["client"]
+            .post(
+                f"/api/v1/plants/{system['plant_id']}/capture",
+                headers=system["user_headers"] | {"Idempotency-Key": "missing"},
+            )
+            .json()
+        )
+        with system["app"].state.sessions.begin() as db:
+            command = db.get(Command, capture["id"])
+            command.status, command.started_at, command.finished_at = "succeeded", utcnow(), utcnow()
+        value = recognition(system)
+&gt;       assert value["result"] is None
+E       AssertionError: assert {'candidates': [{'common_name': '茉莉', 'confidence': 0.82, 'notes': '', 'scientific_name': 'Jasminum sambac'}, {'common...tes': '', 'scientific_name': 'Camellia japonica'}], 'input_quality': 'good', 'provider': 'mock', 'source_type': 'mock'} is None
+
+backend/tests/test_recognition_lifecycle.py:107: AssertionError</failure></testcase></testsuite></testsuites>

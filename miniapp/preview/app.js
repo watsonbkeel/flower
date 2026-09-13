@@ -27,6 +27,7 @@ async function initialize() {
           if (panel) panel.innerHTML = localWeather();
           const validity = document.querySelector('#care-validity');
           if (validity) validity.innerHTML = careValidity();
+          await refreshRecognition();
         }
       } catch (e) { error(e.message); }
     }, 5000);
@@ -80,22 +81,42 @@ async function renderHome() {
 }
 async function renderCare() {
   const recognition = await api(`/plants/${plantId}/recognition`);
-  const candidates = recognition.result && recognition.result.candidates || [];
   const profile = state.care_profile, p = profile && profile.profile;
-  content.innerHTML = title('植物养护卡', state.plant.name) + `<section class="section"><div class="row"><h2>识别与品种确认</h2><button class="secondary" data-action="capture">重新拍照</button></div><form id="species-form">${candidates.map((c,i) => `<label class="candidate"><input type="radio" name="candidate" value="${i}" ${recognition.default_selection === i ? 'checked' : ''}><span>${esc(c.common_name)}<br><small>${esc(c.scientific_name)}</small></span><small>${Math.round(c.confidence * 100)}%</small></label>`).join('')}<div class="form-grid" style="margin-top:20px"><label>手动名称<input name="common_name" value="${esc(state.plant.common_name)}"></label><label>学名<input name="scientific_name" value="${esc(state.plant.scientific_name)}"></label></div><div class="actions"><button type="submit">确认品种</button><button type="button" class="secondary" data-action="research" ${state.plant.recognition_confirmed ? '' : 'disabled'}>生成养护卡</button></div></form><p id="job-status" class="muted"></p></section>` + (p ? `
+  content.innerHTML = title('植物养护卡', state.plant.name) + `<section class="section"><div class="row"><h2>识别与品种确认</h2><button class="secondary" data-action="capture">重新拍照</button></div><form id="species-form"><p id="recognition-status" role="status"></p><p id="retake-notice" class="notice" hidden>识别置信度较低，建议重新拍照或手动填写植物名称。</p><div id="recognition-candidates"></div><div class="form-grid" style="margin-top:20px"><label>手动名称<input name="common_name" value="${esc(state.plant.common_name)}"></label><label>学名<input name="scientific_name" value="${esc(state.plant.scientific_name)}"></label></div><div class="actions"><button type="submit">确认品种</button><button type="button" class="secondary" data-action="research" ${state.plant.recognition_confirmed ? '' : 'disabled'}>生成养护卡</button></div></form><p id="job-status" class="muted"></p></section>` + (p ? `
   <section class="section"><div class="row"><h2>相对土壤湿度目标</h2><span class="badge">${p.source_type === 'real' ? '真实知识来源' : '模拟知识'}</span></div><div class="soil"><strong>${p.soil_target_min_pct}–${p.soil_target_max_pct}</strong><span>%</span></div>${profile.needs_review ? '<p class="warning">来源存在冲突或需要复核，已采用保守参数。</p>' : ''}<div id="care-validity">${careValidity()}</div></section>
   <div class="lower"><section class="section"><h2>园艺资料</h2>${(p.sources || []).map(s => `<div class="source-item"><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)} ↗</a><p class="muted">${esc(s.summary)}</p><small>${esc(V.sourceNames[s.source_type])} · ${esc(when(s.retrieved_at))}</small></div>`).join('')}</section><section class="section" id="local-weather">${localWeather()}</section></div>` : '<p class="empty">养护卡尚未生成</p>');
   const speciesForm = document.querySelector('#species-form');
-  if (recognition.retake_recommended) {
-    const notice = document.createElement('p');
-    notice.className = 'notice';
-    notice.textContent = '识别置信度较低，建议重新拍照或手动填写植物名称。';
-    speciesForm.prepend(notice);
-  }
+  updateRecognition(recognition);
   speciesForm.querySelectorAll('[name="common_name"], [name="scientific_name"]').forEach(input => {
-    input.oninput = () => speciesForm.querySelectorAll('[name="candidate"]').forEach(radio => { radio.checked = false; });
+    input.oninput = () => {
+      speciesForm.selectionTouched = true;
+      speciesForm.querySelectorAll('[name="candidate"]').forEach(radio => { radio.checked = false; });
+    };
   });
-  speciesForm.onsubmit = async event => { event.preventDefault(); const form = new FormData(event.target); const selected = form.get('candidate'); const candidate = selected !== null ? candidates[Number(selected)] : null; try { await api(`/plants/${plantId}/confirm-species`, 'POST', {common_name:candidate ? candidate.common_name : form.get('common_name'), scientific_name:candidate ? candidate.scientific_name : form.get('scientific_name'), input_method:candidate ? 'recognition' : 'manual', confidence:candidate ? candidate.confidence : null}); await render(); } catch(e) { error(e.message); } };
+  speciesForm.onsubmit = async event => { event.preventDefault(); const form = new FormData(event.target); const selected = form.get('candidate'); const candidate = selected !== null ? speciesForm.candidates[Number(selected)] : null; try { await api(`/plants/${plantId}/confirm-species`, 'POST', {common_name:candidate ? candidate.common_name : form.get('common_name'), scientific_name:candidate ? candidate.scientific_name : form.get('scientific_name'), input_method:candidate ? 'recognition' : 'manual', confidence:candidate ? candidate.confidence : null}); await render(); } catch(e) { error(e.message); } };
+}
+async function refreshRecognition() {
+  const recognition = await api(`/plants/${plantId}/recognition`);
+  if (route() === 'care') updateRecognition(recognition);
+}
+function updateRecognition(recognition) {
+  const form = document.querySelector('#species-form');
+  if (!form) return;
+  const identity = JSON.stringify([recognition.capture_id, recognition.image_id]);
+  if (identity !== form.recognitionIdentity) {
+    form.recognitionIdentity = identity;
+    form.selectionTouched = false;
+  }
+  form.candidates = recognition.result && recognition.result.candidates || [];
+  const signature = JSON.stringify([identity, form.candidates]);
+  if (signature !== form.recognitionSignature) {
+    form.recognitionSignature = signature;
+    document.querySelector('#recognition-candidates').innerHTML = form.candidates.map((candidate, index) =>
+      `<label class="candidate"><input type="radio" name="candidate" value="${index}" ${!form.selectionTouched && recognition.default_selection === index ? 'checked' : ''}><span>${esc(candidate.common_name)}<br><small>${esc(candidate.scientific_name)}</small></span><small>${Math.round(candidate.confidence * 100)}%</small></label>`).join('');
+    form.querySelectorAll('[name="candidate"]').forEach(input => { input.onchange = () => { form.selectionTouched = true; }; });
+  }
+  document.querySelector('#recognition-status').textContent = V.recognitionLabel(recognition.status);
+  document.querySelector('#retake-notice').hidden = !recognition.retake_recommended;
 }
 function careValidity() {
   const validity = V.careProfileView(state.care_profile);
@@ -152,7 +173,7 @@ content.addEventListener('click', async event => {
   try {
     if(button.dataset.action==='water')document.querySelector('#water-dialog').showModal();
     if(button.dataset.action==='care')location.hash='care';
-    if(button.dataset.action==='capture'){await api(`/plants/${plantId}/capture`,'POST',{}, {'Idempotency-Key':key()});document.querySelector('#job-status').textContent='等待设备拍照';}
+    if(button.dataset.action==='capture'){await api(`/plants/${plantId}/capture`,'POST',{}, {'Idempotency-Key':key()});await refreshRecognition();}
     if(button.dataset.action==='research'){button.disabled=true;const job=await api(`/plants/${plantId}/care-profile/generate`,'POST',{}, {'Idempotency-Key':key()});await waitJob(job.job_id);}
     if(button.dataset.action==='confirm-care'){await api(`/plants/${plantId}/care-profile/confirm`,'POST',{profile_id:state.care_profile.id});await render();}
     if(button.dataset.action==='structure'){button.disabled=true;const job=await api(`/memories/${button.dataset.id}/structure-rule`,'POST',{}, {'Idempotency-Key':key()});await waitJob(job.job_id);}

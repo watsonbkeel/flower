@@ -12,7 +12,8 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, retakeRecom
       this.setData({plant: status.plant, profile: status.care_profile,
         careValidity: view.careProfileView(status.care_profile),
         weather: view.weatherView(status.care_profile && status.care_profile.profile.weather, status.device && status.device.source_type),
-        candidates: recognition.result ? recognition.result.candidates : [], retakeRecommended: !!recognition.retake_recommended});
+        candidates: recognition.result ? recognition.result.candidates : [], retakeRecommended: !!recognition.retake_recommended,
+        recognitionText: view.recognitionLabel(recognition.status)});
       if (this.recognitionImageId !== recognition.image_id) {
         this.recognitionImageId = recognition.image_id;
         this.selectionTouched = false;
@@ -28,7 +29,7 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, retakeRecom
   choose(event) { this.selectionTouched = true; this.setData({selected: Number(event.detail.value)}); },
   field(event) { this.selectionTouched = true; this.setData({[event.currentTarget.dataset.field]: event.detail.value, selected: -1}); },
   async action(fn) { this.setData({busy: true, error: ''}); try { await fn(); await this.load(); } catch (error) { this.setData({error: error.message}); } finally { this.setData({busy: false}); } },
-  capture() { this.action(async () => { await api.request(`/plants/${this.data.plant.id}/capture`, 'POST', {}, {'Idempotency-Key': api.key()}); this.setData({jobText: '等待设备拍照'}); }); },
+  capture() { this.action(async () => { await api.request(`/plants/${this.data.plant.id}/capture`, 'POST', {}, {'Idempotency-Key': api.key()}); }); },
   confirmSpecies() { this.action(async () => {
     const candidate = this.data.candidates[this.data.selected];
     const manual = !candidate;

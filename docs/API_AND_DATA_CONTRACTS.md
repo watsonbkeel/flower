@@ -78,6 +78,10 @@ GET  /api/v1/images/{id}
 
 所有补水外壳最终只调用一次 `create_command()`；`/plants/{id}/water` 不复制安全逻辑。
 
+识别读取响应包含 `status`、`capture_id`、`image_id`、`result`、`default_selection`、`retake_recommended` 和 `manual_input_available`。有拍照命令时，以最新命令为当前拍摄：非成功状态返回 `capture_<command.status>` 和空结果；成功后只读取服务器记录的 `started_at` 至 `finished_at` 范围内最新的 whole/leaf/flower 图片。无命令时读取最新识别用途图片，记忆照片不参与。
+
+图片作业未完成时返回 `queued`/`running`，失败返回 `failed`，不退回历史候选。成功拍照但范围内没有图片返回 `image_missing`；无拍摄记录返回 `empty`。`succeeded` 才包含可确认候选。客户端轮询更新识别区域，并保留同图的显式选择与手动输入。
+
 ## 6. 健康端点
 
 `GET /health`：进程存活，不访问外部 Provider。

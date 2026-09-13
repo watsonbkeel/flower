@@ -12,6 +12,7 @@ from flower.models import (
     CareProfile,
     FallbackPolicy,
     PlantImage,
+    Job,
     utcnow,
 )
 from flower.schemas import WaterRequest, SpeciesConfirmation, PlantInput, serialize
@@ -77,32 +78,59 @@ def capture(
 @router.get("/plants/{plant_id}/recognition")
 def recognition(plant_id: UUID, user=Depends(require_user), db=Depends(get_db)):
     plant = owned_plant(db, str(plant_id), user.id)
-    images = list(
-        db.scalars(
-            select(PlantImage)
-            .where(PlantImage.plant_id == plant.id, PlantImage.recognition_result.is_not(None))
-            .order_by(PlantImage.created_at.desc())
-            .limit(2)
-        )
+    capture = db.scalar(
+        select(Command)
+        .where(Command.plant_id == plant.id, Command.action == "capture")
+        .order_by(Command.created_at.desc())
+        .limit(1)
     )
-    images = [image for image in images if image.recognition_result]
-    if not images:
-        return {"result": None, "manual_input_available": True}
+    response = {
+        "result": None,
+        "status": "empty",
+        "capture_id": capture.id if capture else None,
+        "image_id": None,
+        "default_selection": None,
+        "retake_recommended": False,
+        "manual_input_available": True,
+    }
+    query = select(PlantImage).where(
+        PlantImage.plant_id == plant.id, PlantImage.image_type.in_(["whole", "leaf", "flower"])
+    )
+    if capture:
+        if capture.status != "succeeded":
+            return response | {"status": "capture_" + capture.status}
+        if not capture.started_at or not capture.finished_at:
+            return response | {"status": "image_missing"}
+        query = query.where(
+            PlantImage.created_at >= capture.started_at,
+            PlantImage.created_at <= capture.finished_at,
+        )
+    image = db.scalar(query.order_by(PlantImage.created_at.desc(), PlantImage.id.desc()).limit(1))
+    if not image:
+        return response | {"status": "image_missing" if capture else "empty"}
+    response["image_id"] = image.id
+    if not image.recognition_result:
+        job = db.scalar(
+            select(Job)
+            .where(Job.target_id == image.id, Job.job_type == "plant_recognition")
+            .order_by(Job.created_at.desc())
+            .limit(1)
+        )
+        return response | {"status": job.status if job and job.status != "succeeded" else "failed"}
     result = {
-        **images[0].recognition_result,
+        **image.recognition_result,
         "candidates": sorted(
-            images[0].recognition_result["candidates"],
+            image.recognition_result["candidates"],
             key=lambda candidate: candidate["confidence"],
             reverse=True,
         ),
     }
     confidence = result["candidates"][0]["confidence"]
-    return {
+    return response | {
         "result": result,
-        "image_id": images[0].id,
+        "status": "succeeded",
         "default_selection": 0 if confidence >= 0.75 else None,
         "retake_recommended": confidence < 0.45,
-        "manual_input_available": True,
     }
 
 

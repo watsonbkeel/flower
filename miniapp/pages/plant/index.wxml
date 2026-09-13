@@ -1,5 +1,6 @@
 <view class="page"><view class="title">{{plant.name}} · 养护卡</view><view class="error" wx:if="{{error}}">{{error}}</view>
 <view class="section"><view class="name">植物识别</view><button class="button secondary" bindtap="capture" disabled="{{busy}}">重新拍照</button>
+<view class="notice" wx:if="{{recognitionText}}">{{recognitionText}}</view>
 <view class="notice" wx:if="{{retakeRecommended}}">识别置信度较低，建议重新拍照或手动填写植物名称。</view>
 <radio-group bindchange="choose"><label class="item row" wx:for="{{candidates}}" wx:key="scientific_name"><view><view>{{item.common_name}}</view><view class="muted">{{item.scientific_name}} · {{item.confidence}}</view></view><radio value="{{index}}" checked="{{selected === index}}" color="#246b4b"/></label></radio-group>
 <view class="field"><text class="label">手动名称</text><input value="{{commonName}}" data-field="commonName" bindinput="field"/></view><view class="field"><text class="label">学名</text><input value="{{scientificName}}" data-field="scientificName" bindinput="field"/></view>
