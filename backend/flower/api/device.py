@@ -283,7 +283,12 @@ def fallback(device=Depends(require_device), db=Depends(get_db)):
     )
     if not policy:
         raise DomainError("POLICY_MISSING", status=404)
-    return {"policy": policy.policy, "policy_hash": policy.policy_hash}
+    plant = db.get(Plant, policy.plant_id)
+    return {
+        "policy": policy.policy,
+        "policy_hash": policy.policy_hash,
+        "auto_mode": bool(plant and plant.auto_mode),
+    }
 
 
 @router.post("/quota/reconcile")

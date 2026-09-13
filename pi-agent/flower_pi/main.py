@@ -298,7 +298,13 @@ def main():
                         datetime.now(timezone.utc),
                     )
             except Exception:
-                if mode == "LOCAL_CONSERVATIVE" and policy_valid and calibration and trusted:
+                if (
+                    mode == "LOCAL_CONSERVATIVE"
+                    and policy_valid
+                    and calibration
+                    and trusted
+                    and ledger.value("fallback", {}).get("auto_mode") is True
+                ):
                     command = DispenseCommand(
                         id=str(uuid4()),
                         device_id=executor.device_id,

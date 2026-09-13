@@ -25,6 +25,66 @@ class RecognitionResult(StrictModel):
 
 
 class MockProviders:
+    def search(self, plant):
+        from flower.services.knowledge import CareSource
+
+        sources = [
+            {
+                "id": "rhs",
+                "url": "https://www.rhs.org.uk/plants/jasmine/growing-guide",
+                "title": "RHS Jasmine growing guide",
+            },
+            {
+                "id": "kew",
+                "url": "https://powo.science.kew.org/",
+                "title": "Kew Plants of the World Online",
+            },
+        ]
+        return [
+            CareSource(
+                **source,
+                summary="Mock cached horticultural reference; confirm locally.",
+                category="horticultural",
+                retrieved_at=utcnow(),
+                confidence=0.8,
+                source_type="mock",
+            ).model_dump(mode="json")
+            for source in sources
+        ]
+
+    def structure_care(self, sources):
+        from flower.services.knowledge import Knowledge
+
+        return Knowledge(
+            source_ids=[source["id"] for source in sources], confidence=0.8, needs_review=False
+        ).model_dump(mode="json")
+
+    def weather(self, plant):
+        from datetime import timedelta
+        from flower.services.knowledge import Weather
+
+        return Weather(
+            temperature_c=25,
+            rain_next_12h_mm=0,
+            observed_at=utcnow(),
+            valid_until=utcnow() + timedelta(hours=3),
+            provider="mock",
+            source_type="mock",
+        ).model_dump(mode="json")
+
+    def structure_memory(self, text):
+        from flower.services.knowledge import MemoryRule
+
+        return MemoryRule(
+            preferred_windows=[["18:00", "21:00"]],
+            watering_style="small_portions",
+            soil_preference="let_surface_dry",
+            threshold_shift_pct=-3,
+        ).model_dump(mode="json")
+
+    def notify(self, message):
+        return {"status": "mock", "source_type": "mock"}
+
     def recognize(self, content):
         return RecognitionResult(
             candidates=[
@@ -96,6 +156,60 @@ class HTTPProviders:
         if result.source_type != "real":
             raise DomainError("PROVIDER_SOURCE_MISMATCH")
         return result.model_dump(mode="json")
+
+    def search(self, plant):
+        from flower.services.knowledge import CareSource
+
+        response = self.call(
+            "search",
+            {
+                "scientific_name": plant["scientific_name"],
+                "placement_type": plant["placement_type"],
+                "city": plant["city"],
+                "terms": ["container", "watering", "temperature", "soil moisture", "season"],
+            },
+        )
+        return [
+            CareSource.model_validate(source).model_dump(mode="json")
+            for source in response["sources"]
+        ]
+
+    def structure_care(self, sources):
+        from flower.services.knowledge import Knowledge
+
+        result = self.call(
+            "structure",
+            {
+                "task": "care_knowledge",
+                "sources": sources,
+                "output_schema": Knowledge.model_json_schema(),
+            },
+        )
+        return Knowledge.model_validate(result).model_dump(mode="json")
+
+    def weather(self, plant):
+        from flower.services.knowledge import Weather
+
+        result = self.call(
+            "weather", {key: plant.get(key) for key in ("city", "latitude", "longitude")}
+        )
+        return Weather.model_validate(result).model_dump(mode="json")
+
+    def structure_memory(self, text):
+        from flower.services.knowledge import MemoryRule
+
+        result = self.call(
+            "structure",
+            {
+                "task": "family_memory",
+                "original_experience": text,
+                "output_schema": MemoryRule.model_json_schema(),
+            },
+        )
+        return MemoryRule.model_validate(result).model_dump(mode="json")
+
+    def notify(self, message):
+        return self.call("notify", message)
 
 
 def providers(settings, sessions):

@@ -7,10 +7,11 @@ import time
 from uuid import uuid4
 
 from pathlib import Path
+from sqlalchemy import select, func
 
 from flower.config import Settings
 from flower.db import make_engine, ready, sessions as make_sessions
-from flower.models import Job, PlantImage, WorkerHeartbeat, utcnow
+from flower.models import Job, PlantImage, WorkerHeartbeat, Plant, CareProfile, Memory, utcnow
 from flower.services.jobs import claim_job, recover_jobs, complete_job, fail_job, owned_job
 from flower.services.providers import providers
 from flower.services.commands import sweep_commands
@@ -39,15 +40,70 @@ class Worker:
                 if not image:
                     raise ValueError("IMAGE_NOT_FOUND")
                 content = image_path(self.settings, image.file_path).read_bytes()
+                kind = job.job_type
+            elif job.job_type == "care_research":
+                from flower.schemas import serialize
+
+                plant = db.get(Plant, job.target_id)
+                if not plant or not plant.recognition_confirmed:
+                    raise ValueError("SPECIES_UNCONFIRMED")
+                content = serialize(plant)
+                kind = job.job_type
+            elif job.job_type == "memory_structure":
+                memory = db.get(Memory, job.target_id)
+                content = memory.original_experience
+                kind = job.job_type
             else:
                 raise ValueError("UNSUPPORTED_JOB")
-        result = self.providers.recognize(content)
+        if kind == "plant_recognition":
+            result = self.providers.recognize(content)
+        elif kind == "care_research":
+            from flower.services.care import research
+
+            result = research(self.providers, content)
+        else:
+            result = self.providers.structure_memory(content)
         with self.sessions.begin() as db:
             job = owned_job(db, claim["id"], claim["locked_by"], claim["attempt"])
             if job is None:
                 return False
-            image = db.get(PlantImage, job.target_id)
-            image.recognition_result = result
+            if job.locked_at + timedelta(seconds=job.timeout_sec) <= utcnow():
+                return False
+            if kind == "plant_recognition":
+                image = db.get(PlantImage, job.target_id)
+                image.recognition_result = result
+            elif kind == "care_research":
+                plant = db.scalar(select(Plant).where(Plant.id == job.target_id).with_for_update())
+                if (
+                    not plant.recognition_confirmed
+                    or plant.scientific_name != content["scientific_name"]
+                ):
+                    raise ValueError("SPECIES_CHANGED")
+                version = (
+                    db.scalar(
+                        select(func.max(CareProfile.version)).where(
+                            CareProfile.plant_id == plant.id
+                        )
+                    )
+                    or 0
+                ) + 1
+                profile = CareProfile(
+                    plant_id=plant.id,
+                    version=version,
+                    profile=result,
+                    valid_until=utcnow() + timedelta(days=30),
+                    needs_review=result["needs_review"],
+                    source_conflict={"conflict": result["source_conflict"]},
+                )
+                db.add(profile)
+                db.flush()
+                result = {"profile_id": profile.id, "source_type": result["source_type"]}
+            else:
+                memory = db.get(Memory, job.target_id)
+                if memory.original_experience != content:
+                    raise ValueError("MEMORY_CHANGED")
+                memory.structured_rule = result
+                memory.rule_confirmed, memory.rule_enabled = False, False
             return complete_job(db, job.id, claim["locked_by"], claim["attempt"], result)
 
     def run_once(self, isolated=False):
@@ -106,6 +162,11 @@ def main():
         return
     while True:
         worker.run_once(isolated=True)
+        from flower.services.care import evaluate_plant
+
+        with sessions.begin() as db:
+            for plant in db.scalars(select(Plant).where(Plant.auto_mode.is_(True))):
+                evaluate_plant(db, settings, plant)
         if args.once:
             return
         time.sleep(1)

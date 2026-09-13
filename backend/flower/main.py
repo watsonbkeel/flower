@@ -69,10 +69,12 @@ def create_app(settings=None):
     from flower.api.device import router as device_router
     from flower.api.plants import router as plants_router
     from flower.api.media import router as media_router
+    from flower.api.care import router as care_router
 
     app.include_router(device_router)
     app.include_router(plants_router)
     app.include_router(media_router)
+    app.include_router(care_router)
 
     @app.get("/health")
     def health():

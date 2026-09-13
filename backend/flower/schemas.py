@@ -29,6 +29,26 @@ class SpeciesConfirmation(StrictModel):
     confidence: float | None = Field(default=None, ge=0, le=1)
 
 
+class Toggle(StrictModel):
+    enabled: bool
+
+
+class ProfileConfirmation(StrictModel):
+    profile_id: str
+
+
+class MemoryInput(StrictModel):
+    plant_id: str | None = None
+    title: str = Field(min_length=1, max_length=200)
+    story: str = Field(default="", max_length=10000)
+    original_experience: str = Field(default="", max_length=5000)
+    photo_id: str | None = None
+
+
+class MemoryEnabled(Toggle):
+    confirmed: bool = False
+
+
 class PlantInput(StrictModel):
     device_id: str
     name: str = Field(min_length=1, max_length=100)

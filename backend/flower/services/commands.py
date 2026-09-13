@@ -188,7 +188,8 @@ def create_command(
         preferred = parameters.get(
             "pulse_ml", {"small": 10, "medium": 20, "large": 30}[plant.pot_size]
         )
-        preferred *= 1 if plant.has_drainage else 0.5
+        if "pulse_ml" not in parameters:
+            preferred *= 1 if plant.has_drainage else 0.5
         pulse = min(quantity, preferred)
         max_pulses = math.ceil(quantity / pulse)
         if max_pulses > settings.max_pulses_limit:
