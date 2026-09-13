@@ -237,10 +237,12 @@ def main():
     while True:
         from flower.services.retention import schedule
         from flower.services.weather import schedule_weather
+        from flower.services.care import renew_fallback_policies
 
         with sessions.begin() as db:
             schedule(db, utcnow())
             schedule_weather(db, utcnow())
+            renew_fallback_policies(db, settings)
         worker.run_once(isolated=True)
         from flower.services.care import evaluate_plant
 

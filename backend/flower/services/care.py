@@ -127,12 +127,13 @@ def issue_fallback(db, settings, plant, profile):
     return policy
 
 
-def refresh_fallback_for_plant(db, settings, plant_id):
+def refresh_fallback_for_plant(db, settings, plant_id, *, only_if_due=False):
     if not plant_id:
         return
     db.flush()
     plant = db.get(Plant, plant_id)
-    db.refresh(db.get(Device, plant.device_id), with_for_update=True)
+    device = db.get(Device, plant.device_id)
+    db.refresh(device, with_for_update=True)
     db.refresh(plant, with_for_update=True)
     profile = db.scalar(
         select(CareProfile)
@@ -141,10 +142,45 @@ def refresh_fallback_for_plant(db, settings, plant_id):
         .limit(1)
     )
     now = utcnow()
-    if profile and profile.valid_until > now and plant.recognition_confirmed:
+    if profile and profile.valid_until > now and plant.recognition_confirmed and not device.revoked:
+        if only_if_due:
+            current = db.scalar(
+                select(FallbackPolicy)
+                .where(FallbackPolicy.plant_id == plant_id)
+                .order_by(FallbackPolicy.policy_version.desc())
+                .limit(1)
+            )
+            if (
+                current
+                and current.profile_version == profile.version
+                and now < current.valid_until <= profile.valid_until
+                and (
+                    current.valid_until == profile.valid_until
+                    or current.valid_until
+                    > now + timedelta(seconds=settings.fallback_renew_before_sec)
+                )
+            ):
+                return
         return issue_fallback(db, settings, plant, profile)
     for previous in db.scalars(select(FallbackPolicy).where(FallbackPolicy.plant_id == plant_id)):
         previous.valid_until = min(previous.valid_until, now)
+
+
+def renew_fallback_policies(db, settings):
+    renewed = 0
+    for plant_id in db.scalars(
+        select(Plant.id)
+        .join(Device, Device.id == Plant.device_id)
+        .where(
+            Plant.is_primary.is_(True),
+            Plant.recognition_confirmed.is_(True),
+            Device.revoked.is_(False),
+        )
+        .order_by(Plant.device_id)
+    ):
+        if refresh_fallback_for_plant(db, settings, plant_id, only_if_due=True) is not None:
+            renewed += 1
+    return renewed
 
 
 def evaluate_plant(db, settings, plant, *, create=True):

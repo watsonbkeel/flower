@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="6" time="1.025" timestamp="2026-09-13T18:25:00.396324+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_policy_renewal" name="test_policy_renews_before_expiry_and_remains_pi_valid" time="0.375"><failure message="ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f28f8f78050&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY5MDB9.4RK9G712V--g-6krY8gMsyELs6ZpFU2EAfdblQrzge8'}, 'device_id': '81e6f455-e7bd-40d9-b5ff-ba31e9597b32', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f28f82af5c0&gt;
+
+    def test_policy_renews_before_expiry_and_remains_pi_valid(system, monkeypatch):
+&gt;       from flower.services.care import renew_fallback_policies
+E       ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)
+
+backend/tests/test_policy_renewal.py:13: ImportError</failure></testcase><testcase classname="backend.tests.test_policy_renewal" name="test_policy_renewal_requires_valid_confirmed_care_and_active_device[unconfirmed]" time="0.109"><failure message="ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f28f7b14b90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY5MDB9.-5TQ1dz9qhflZfP7xIjXn1z8sYt3oiqKb_W8M25JU_Q'}, 'device_id': 'fcc2ca2d-23ce-49b9-9469-69bc9fa40278', ...}
+blocked = 'unconfirmed'
+
+    @pytest.mark.parametrize("blocked", ["unconfirmed", "expired", "revoked"])
+    def test_policy_renewal_requires_valid_confirmed_care_and_active_device(system, blocked):
+&gt;       from flower.services.care import renew_fallback_policies
+E       ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)
+
+backend/tests/test_policy_renewal.py:36: ImportError</failure></testcase><testcase classname="backend.tests.test_policy_renewal" name="test_policy_renewal_requires_valid_confirmed_care_and_active_device[expired]" time="0.159"><failure message="ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f28f7b17ed0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY5MDF9.oeteOZLd-sKFungT-atBEzX_Hmi3JGpw7WQ9mRJ4nmM'}, 'device_id': '86299c12-ba92-41fe-8d65-28bb76b33d82', ...}
+blocked = 'expired'
+
+    @pytest.mark.parametrize("blocked", ["unconfirmed", "expired", "revoked"])
+    def test_policy_renewal_requires_valid_confirmed_care_and_active_device(system, blocked):
+&gt;       from flower.services.care import renew_fallback_policies
+E       ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)
+
+backend/tests/test_policy_renewal.py:36: ImportError</failure></testcase><testcase classname="backend.tests.test_policy_renewal" name="test_policy_renewal_requires_valid_confirmed_care_and_active_device[revoked]" time="0.093"><failure message="ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f28f82982d0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY5MDF9.vboj_AiABXjaX_ffwpKsccUmQ-x-D6GvCjnVzgBWvDM'}, 'device_id': 'a711cf63-0647-4095-857f-797b6c10d084', ...}
+blocked = 'revoked'
+
+    @pytest.mark.parametrize("blocked", ["unconfirmed", "expired", "revoked"])
+    def test_policy_renewal_requires_valid_confirmed_care_and_active_device(system, blocked):
+&gt;       from flower.services.care import renew_fallback_policies
+E       ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)
+
+backend/tests/test_policy_renewal.py:36: ImportError</failure></testcase><testcase classname="backend.tests.test_policy_renewal" name="test_short_remaining_care_validity_does_not_cause_renewal_loop" time="0.088"><failure message="ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f28f82fa490&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY5MDF9.EQ2Z641xB63IN2egNxNmerzKiEKJUrryvxEuXBhYjmw'}, 'device_id': 'e12e1cad-caf0-4cd1-b0c4-70c34a32e4f7', ...}
+
+    def test_short_remaining_care_validity_does_not_cause_renewal_loop(system):
+&gt;       from flower.services.care import renew_fallback_policies
+E       ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)
+
+backend/tests/test_policy_renewal.py:51: ImportError</failure></testcase><testcase classname="backend.tests.test_policy_renewal" name="test_concurrent_renewal_issues_only_one_version" time="0.112"><failure message="ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f28f7300a50&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY5MDF9.7xUq-1HFWEb3SKysx8cQNufet3vYW6059IexvRMynSg'}, 'device_id': 'bf3ba18a-0560-414a-81d1-76440c64bca9', ...}
+
+    def test_concurrent_renewal_issues_only_one_version(system):
+&gt;       from flower.services.care import renew_fallback_policies
+E       ImportError: cannot import name 'renew_fallback_policies' from 'flower.services.care' (/root/flower/backend/flower/services/care.py)
+
+backend/tests/test_policy_renewal.py:64: ImportError</failure></testcase></testsuite></testsuites>

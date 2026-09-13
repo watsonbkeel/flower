@@ -25,7 +25,7 @@ npm --prefix miniapp test
 .venv/bin/ruff check backend pi-agent tests
 ```
 
-默认测试使用SQLite，并明确跳过仅能在PG运行的独立恢复测试。完整证据必须使用PostgreSQL：
+默认测试使用SQLite，并明确跳过仅能在PG运行的行锁并发与独立恢复测试。完整证据必须使用PostgreSQL：
 
 ```bash
 mkdir -p .runtime/vendor .runtime/pg

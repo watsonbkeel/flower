@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     urgent_override_gap_pct: float = Field(default=15, ge=15)
     job_max_concurrency: int = Field(default=1, ge=1, le=1)
     job_recovery_scan_sec: int = 60
+    fallback_renew_before_sec: int = Field(default=86400, ge=60, le=86400)
     alert_dedup_hours: int = 6
     wechat_app_id: str = ""
     wechat_app_secret: str = ""
