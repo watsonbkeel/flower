@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="0.066" timestamp="2026-09-13T19:05:49.996754+08:00" hostname="VM-0-13-debian"><testcase classname="tests.test_deployment_sequence" name="test_deploy_shell_entrypoint_requires_authorization_before_release_access" time="0.004"><failure message="AssertionError: assert 'Production window authorization required; no changes made' in 'sh: 0: cannot open /root/flower/scripts/deploy.sh: No such file\n'&#10; +  where 'sh: 0: cannot open /root/flower/scripts/deploy.sh: No such file\n' = CompletedProcess(args=['sh', '/root/flower/scripts/deploy.sh', '/tmp/pytest-of-root/pytest-81/test_deploy_shell_entryp...0/not-a-release'], returncode=2, stdout='', stderr='sh: 0: cannot open /root/flower/scripts/deploy.sh: No such file\n').stderr">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-81/test_deploy_shell_entrypoint_r0')
+
+    def test_deploy_shell_entrypoint_requires_authorization_before_release_access(tmp_path):
+        environment = os.environ.copy()
+        environment.pop("FLOWER_PRODUCTION_AUTHORIZED", None)
+        environment["PATH"] = str(Path(sys.executable).parent) + os.pathsep + environment["PATH"]
+        result = subprocess.run(
+            ["sh", str(Path("scripts/deploy.sh").resolve()), str(tmp_path / "not-a-release")],
+            env=environment,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode != 0
+&gt;       assert "Production window authorization required; no changes made" in result.stderr
+E       AssertionError: assert 'Production window authorization required; no changes made' in 'sh: 0: cannot open /root/flower/scripts/deploy.sh: No such file\n'
+E        +  where 'sh: 0: cannot open /root/flower/scripts/deploy.sh: No such file\n' = CompletedProcess(args=['sh', '/root/flower/scripts/deploy.sh', '/tmp/pytest-of-root/pytest-81/test_deploy_shell_entryp...0/not-a-release'], returncode=2, stdout='', stderr='sh: 0: cannot open /root/flower/scripts/deploy.sh: No such file\n').stderr
+
+tests/test_deployment_sequence.py:28: AssertionError</failure></testcase><testcase classname="tests.test_deployment_sequence" name="test_service_activation_waits_for_database_and_worker_without_building[deploy]" time="0.002"><failure message="AssertionError: assert '--wait' in ('up', '-d', '--no-build', '--pull', 'never', 'postgres')">action = 'deploy'
+
+    @pytest.mark.parametrize("action", ["deploy", "rollback"])
+    def test_service_activation_waits_for_database_and_worker_without_building(action):
+        calls = []
+        database_ready = False
+
+        def compose(*args):
+            nonlocal database_ready
+            calls.append(args)
+            assert "--build" not in args
+            if args[0] == "up":
+                assert "--no-build" in args and args[args.index("--pull") + 1] == "never"
+                assert "--wait" in args
+                assert args[args.index("--wait-timeout") + 1] == "120"
+            if args[-1] == "postgres":
+                database_ready = True
+            elif args[0] == "run":
+                assert database_ready, "Migration ran before database health was established"
+                assert args == ("run", "--rm", "--no-deps", "api", "alembic", "upgrade", "head")
+            else:
+                assert database_ready
+                assert args[-3:] == ("api", "worker", "proxy")
+
+&gt;       production().activate_services(compose, action)
+
+tests/test_deployment_sequence.py:54:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts/production.py:12: in activate_services
+    run("up", "-d", "--no-build", "--pull", "never", "postgres")
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ('up', '-d', '--no-build', '--pull', 'never', 'postgres')
+@py_assert0 = '--wait', @py_assert2 = False
+@py_format4 = "'--wait' in ('up', '-d', '--no-build', '--pull', 'never', 'postgres')"
+
+    def compose(*args):
+        nonlocal database_ready
+        calls.append(args)
+        assert "--build" not in args
+        if args[0] == "up":
+            assert "--no-build" in args and args[args.index("--pull") + 1] == "never"
+&gt;           assert "--wait" in args
+E           AssertionError: assert '--wait' in ('up', '-d', '--no-build', '--pull', 'never', 'postgres')
+
+tests/test_deployment_sequence.py:43: AssertionError</failure></testcase><testcase classname="tests.test_deployment_sequence" name="test_service_activation_waits_for_database_and_worker_without_building[rollback]" time="0.001"><failure message="AssertionError: assert '--wait' in ('up', '-d', '--no-build', '--pull', 'never', 'postgres')">action = 'rollback'
+
+    @pytest.mark.parametrize("action", ["deploy", "rollback"])
+    def test_service_activation_waits_for_database_and_worker_without_building(action):
+        calls = []
+        database_ready = False
+
+        def compose(*args):
+            nonlocal database_ready
+            calls.append(args)
+            assert "--build" not in args
+            if args[0] == "up":
+                assert "--no-build" in args and args[args.index("--pull") + 1] == "never"
+                assert "--wait" in args
+                assert args[args.index("--wait-timeout") + 1] == "120"
+            if args[-1] == "postgres":
+                database_ready = True
+            elif args[0] == "run":
+                assert database_ready, "Migration ran before database health was established"
+                assert args == ("run", "--rm", "--no-deps", "api", "alembic", "upgrade", "head")
+            else:
+                assert database_ready
+                assert args[-3:] == ("api", "worker", "proxy")
+
+&gt;       production().activate_services(compose, action)
+
+tests/test_deployment_sequence.py:54:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts/production.py:12: in activate_services
+    run("up", "-d", "--no-build", "--pull", "never", "postgres")
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = ('up', '-d', '--no-build', '--pull', 'never', 'postgres')
+@py_assert0 = '--wait', @py_assert2 = False
+@py_format4 = "'--wait' in ('up', '-d', '--no-build', '--pull', 'never', 'postgres')"
+
+    def compose(*args):
+        nonlocal database_ready
+        calls.append(args)
+        assert "--build" not in args
+        if args[0] == "up":
+            assert "--no-build" in args and args[args.index("--pull") + 1] == "never"
+&gt;           assert "--wait" in args
+E           AssertionError: assert '--wait' in ('up', '-d', '--no-build', '--pull', 'never', 'postgres')
+
+tests/test_deployment_sequence.py:43: AssertionError</failure></testcase><testcase classname="tests.test_deployment_sequence" name="test_database_health_failure_prevents_migration_and_application_start" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'subprocess.CalledProcessError'&gt;">def test_database_health_failure_prevents_migration_and_application_start():
+        calls = []
+
+        def unhealthy(*args):
+            calls.append(args)
+            if "--wait" in args:
+                raise subprocess.CalledProcessError(1, ["mock-compose", *args])
+
+&gt;       with pytest.raises(subprocess.CalledProcessError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE &lt;class 'subprocess.CalledProcessError'&gt;
+
+tests/test_deployment_sequence.py:67: Failed</failure></testcase><testcase classname="tests.test_deployment_sequence" name="test_worker_health_failure_is_not_reported_as_success" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'subprocess.CalledProcessError'&gt;">def test_worker_health_failure_is_not_reported_as_success():
+        def unhealthy_worker(*args):
+            if args[-3:] == ("api", "worker", "proxy") and "--wait" in args:
+                raise subprocess.CalledProcessError(1, ["mock-compose", *args])
+
+&gt;       with pytest.raises(subprocess.CalledProcessError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE &lt;class 'subprocess.CalledProcessError'&gt;
+
+tests/test_deployment_sequence.py:78: Failed</failure></testcase></testsuite></testsuites>

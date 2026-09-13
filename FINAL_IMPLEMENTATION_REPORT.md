@@ -31,7 +31,7 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 
 | 命令/范围 | 结果 | 证据 |
 |---|---|---|
-| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-species-photo-postgres.xml` | PASS，215项 | [PostgreSQL回归](evidence/stage8-species-photo-postgres.xml) |
+| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-deployment-sequence-postgres.xml` | PASS，220项 | [PostgreSQL回归](evidence/stage8-deployment-sequence-postgres.xml) |
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
 | `npm --prefix miniapp test` | PASS，13项 | [Node执行记录](evidence/stage8-species-photo-node-green.tap) |
@@ -174,6 +174,8 @@ Worker持续维护主控植物的有效fallback策略，默认提前86400秒续�
 `scripts/backup.py`打包PG custom dump、uploads、release manifest和校验和，保留7份日备份/4份周备份。恢复只允许新建`flower_restore_*`测试库及新的图片目录，不覆盖现有DB。生产备份停止Flower写入进程的模板尚未运行。
 
 `scripts/release.py`从干净commit导出源码和清单；未构建明确为NOT_BUILT。完成镜像构建后记录实际ID，生产脚本核验文件/镜像和近期恢复证明，migration显式执行。回滚使用上一SHA且`--no-build --pull never`，不自动alembic downgrade。
+
+`scripts/deploy.sh`提供规格要求的发布入口，沿用生产授权门。启动PG后等待Compose健康再运行迁移，随后等待API/Worker健康；失败不推进current链接。已验证顺序、故障退出和未授权拒绝，Compose仅用模拟调用验证，实际Docker/容器启动仍未运行。见`evidence/stage8-deployment-sequence.md`。
 
 ## 9. 尚未完成与恢复路径
 

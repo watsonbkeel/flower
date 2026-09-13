@@ -51,6 +51,7 @@ PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --
 - Pi安装：将`pi-agent`准备到实物独立`/opt/smart-guardian`，断开泵电源后按`pi-agent/README.md`与`docs/HARDWARE_WIRING.md`操作；本服务器不执行Pi安装脚本。
 - 原生小程序：`miniapp/README.md`。外部网关：`docs/PROVIDERS.md`。离线演示：`docs/OFFLINE_DEMO.md`。
 - 不可变release、Compose、独立Nginx、备份恢复和回滚：`docs/DEPLOYMENT_RUNBOOK.md`。授权前只运行`scripts/release.py --output .runtime/releases`准备开发包；没有image ID的manifest为NOT_BUILT。
+- 发布入口：`scripts/deploy.sh <release>`，在明确生产授权窗口内使用；等待数据库及API/Worker健康，迁移仅作为显式步骤执行。
 
 任何生产部署必须先解除`BLOCKERS.md`中相应项目并获得明确窗口授权。本仓库不会修改aibot生产或宿主网络。
 

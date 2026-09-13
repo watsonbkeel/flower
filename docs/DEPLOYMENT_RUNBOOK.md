@@ -56,10 +56,10 @@ df -hT /
 
 1. 确认 production hard gate 配置合法：`DEV_MODE=false`、`DEV_AUTH_BYPASS=false`、HTTPS 基址、secret 非默认。
 2. `docker compose ... config`。
-3. 启动/确认 `postgres` 健康。
+3. 启动/确认 `postgres` 健康。发布工具通过Compose `up --wait --wait-timeout 120`等待健康；超时退出，不继续迁移。
 4. 升级前运行 `backup.sh`，备份 DB + uploads + release manifest + checksums。
 5. **显式一次性 migration**：`docker compose ... run --rm api alembic upgrade head`。API/Worker entrypoint 不执行 migration。
-6. migration 成功后启动 `api`、`worker`、`proxy`。
+6. migration 成功后启动 `api`、`worker`、`proxy`，同样等待Compose健康状态。API或Worker不健康时退出，不能仅凭API HTTP响应认定发布成功。
 7. 验证 `127.0.0.1:18080/health` 与 `/ready`。
 8. 若是首次公网接入，在独立授权窗口写入 `flower-api.bkeel.com` Nginx server block，先 `nginx -t`，再 reload。
 9. 从外部验证 HTTPS、设备 auth、图片上传限制和小程序 API。
@@ -118,7 +118,8 @@ production 必须使用有效 HTTPS 域名。
 - `scripts/release.py --output .runtime/releases` 从干净commit生成开发发布包，未build时manifest明确为NOT_BUILT。
 - 获得窗口后构建`docker build -t flower-app:$(git rev-parse HEAD) backend`，拉取Compose指定的PG/proxy镜像，重新生成`--inspect-images`清单。清单保存三个image ID，release.env将PG/proxy锁定为ID。
 - 将当前和上一release的三个镜像分别`docker save`到受控存储并计算SHA256；恢复时先`docker load`，生产脚本校验tag对应的实际ID，禁止现场build。
-- `scripts/production.py deploy /srv/flower/releases/<sha>`和`rollback`仅在环境`FLOWER_PRODUCTION_AUTHORIZED=1`的明确授权窗口使用。它们不会安装Docker或修改宿主Nginx、防火墙、VPN。
+- `scripts/deploy.sh /srv/flower/releases/<sha>`调用同一生产发布入口；也可用`scripts/production.py deploy /srv/flower/releases/<sha>`，回滚使用`rollback`。仅在环境`FLOWER_PRODUCTION_AUTHORIZED=1`的明确授权窗口使用。它们不会安装Docker或修改宿主Nginx、防火墙、VPN。
+- 生产窗口安装的Compose v2必须支持`up --wait --wait-timeout`；先通过`docker compose up --help`确认。工具等待PG健康后显式迁移，再等待API/Worker健康；失败时保持current链接，按第9节回滚。
 - `nginx/flower-api.host.conf`为独立站点模板，证书路径须先存在；不得直接覆盖现有站点。
 - `/srv/flower/shared/uploads`及`backups`由容器UID 10001可写；PG目录由指定PG镜像用户维护，不能混用aibot目录。
 - `deployment/flower-backup.timer`、`.service`与`backup-production.sh`为待安装模板。备份期间停止API/Worker写入；需在窗口中验证该短暂停机及设备fallback。

@@ -8,6 +8,14 @@ from pathlib import Path
 import subprocess
 
 
+def activate_services(run, action):
+    start = ("up", "-d", "--no-build", "--pull", "never", "--wait", "--wait-timeout", "120")
+    run(*start, "postgres")
+    if action == "deploy":
+        run("run", "--rm", "--no-deps", "api", "alembic", "upgrade", "head")
+    run(*start, "api", "worker", "proxy")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["deploy", "rollback"])
@@ -80,10 +88,7 @@ def main():
     ):
         raise SystemExit("A recent independent restore proof is required")
     verify(backup_directory)
-    run("up", "-d", "--no-build", "--pull", "never", "postgres")
-    if args.action == "deploy":
-        run("run", "--rm", "--no-deps", "api", "alembic", "upgrade", "head")
-    run("up", "-d", "--no-build", "--pull", "never", "api", "worker", "proxy")
+    activate_services(run, args.action)
     import urllib.request
     import time
 
