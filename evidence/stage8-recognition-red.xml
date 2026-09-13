@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="0.796" timestamp="2026-09-13T18:33:07.622119+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_recognition_selection" name="test_recognition_ranks_candidates_before_applying_selection_threshold[0.75-0-False]" time="0.286"><failure message="AssertionError: assert 'Lower candidate' == 'Best candidate'&#10;  &#10;  - Best candidate&#10;  ? ^ ^^&#10;  + Lower candidate&#10;  ? ^^^ ^">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f8335b71400&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTczODd9.sbt4NCT810OsbzD2xKwcR8gGTLBzCifAx7O8pyOAfJc'}, 'device_id': '62794a9b-8ec7-4947-b466-ba68f43def76', ...}
+confidence = 0.75, default = 0, retake = False
+
+    @pytest.mark.parametrize("confidence,default,retake", [(0.75, 0, False), (0.749, None, False), (0.45, None, False), (0.449, None, True)])
+    def test_recognition_ranks_candidates_before_applying_selection_threshold(system, confidence, default, retake):
+        with system["app"].state.sessions.begin() as db:
+            db.add(PlantImage(
+                device_id=system["device_id"], plant_id=system["plant_id"], file_path="test/selection.jpg",
+                image_type="whole", source_type="mock", recognition_result={
+                    "candidates": [
+                        {"common_name": "Lower", "scientific_name": "Lower candidate", "confidence": 0.1},
+                        {"common_name": "Best", "scientific_name": "Best candidate", "confidence": confidence}
+                    ], "provider": "mock", "source_type": "mock", "input_quality": "good"
+                }
+            ))
+        response = system["client"].get(f"/api/v1/plants/{system['plant_id']}/recognition", headers=system["user_headers"])
+        assert response.status_code == 200
+        value = response.json()
+&gt;       assert value["result"]["candidates"][0]["scientific_name"] == "Best candidate"
+E       AssertionError: assert 'Lower candidate' == 'Best candidate'
+E
+E         - Best candidate
+E         ? ^ ^^
+E         + Lower candidate
+E         ? ^^^ ^
+
+backend/tests/test_recognition_selection.py:21: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_selection" name="test_recognition_ranks_candidates_before_applying_selection_threshold[0.749-None-False]" time="0.132"><failure message="AssertionError: assert 'Lower candidate' == 'Best candidate'&#10;  &#10;  - Best candidate&#10;  ? ^ ^^&#10;  + Lower candidate&#10;  ? ^^^ ^">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f8335305310&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTczODh9.Z9DZ-cT6jNFEoQ_o-Gdzt7WR1JmDPvyAwhJKpsyCnVU'}, 'device_id': 'bcef7855-cc5b-498d-bdcc-f5396ebdf0a4', ...}
+confidence = 0.749, default = None, retake = False
+
+    @pytest.mark.parametrize("confidence,default,retake", [(0.75, 0, False), (0.749, None, False), (0.45, None, False), (0.449, None, True)])
+    def test_recognition_ranks_candidates_before_applying_selection_threshold(system, confidence, default, retake):
+        with system["app"].state.sessions.begin() as db:
+            db.add(PlantImage(
+                device_id=system["device_id"], plant_id=system["plant_id"], file_path="test/selection.jpg",
+                image_type="whole", source_type="mock", recognition_result={
+                    "candidates": [
+                        {"common_name": "Lower", "scientific_name": "Lower candidate", "confidence": 0.1},
+                        {"common_name": "Best", "scientific_name": "Best candidate", "confidence": confidence}
+                    ], "provider": "mock", "source_type": "mock", "input_quality": "good"
+                }
+            ))
+        response = system["client"].get(f"/api/v1/plants/{system['plant_id']}/recognition", headers=system["user_headers"])
+        assert response.status_code == 200
+        value = response.json()
+&gt;       assert value["result"]["candidates"][0]["scientific_name"] == "Best candidate"
+E       AssertionError: assert 'Lower candidate' == 'Best candidate'
+E
+E         - Best candidate
+E         ? ^ ^^
+E         + Lower candidate
+E         ? ^^^ ^
+
+backend/tests/test_recognition_selection.py:21: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_selection" name="test_recognition_ranks_candidates_before_applying_selection_threshold[0.45-None-False]" time="0.190"><failure message="AssertionError: assert 'Lower candidate' == 'Best candidate'&#10;  &#10;  - Best candidate&#10;  ? ^ ^^&#10;  + Lower candidate&#10;  ? ^^^ ^">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f8334e73110&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTczODh9.MF6fILYDsVIvdwsU3SYA9iaFPKvfs00oh--0fzRoOcM'}, 'device_id': '8d614fb4-5dfa-4466-9ffb-19ad3b3e19ac', ...}
+confidence = 0.45, default = None, retake = False
+
+    @pytest.mark.parametrize("confidence,default,retake", [(0.75, 0, False), (0.749, None, False), (0.45, None, False), (0.449, None, True)])
+    def test_recognition_ranks_candidates_before_applying_selection_threshold(system, confidence, default, retake):
+        with system["app"].state.sessions.begin() as db:
+            db.add(PlantImage(
+                device_id=system["device_id"], plant_id=system["plant_id"], file_path="test/selection.jpg",
+                image_type="whole", source_type="mock", recognition_result={
+                    "candidates": [
+                        {"common_name": "Lower", "scientific_name": "Lower candidate", "confidence": 0.1},
+                        {"common_name": "Best", "scientific_name": "Best candidate", "confidence": confidence}
+                    ], "provider": "mock", "source_type": "mock", "input_quality": "good"
+                }
+            ))
+        response = system["client"].get(f"/api/v1/plants/{system['plant_id']}/recognition", headers=system["user_headers"])
+        assert response.status_code == 200
+        value = response.json()
+&gt;       assert value["result"]["candidates"][0]["scientific_name"] == "Best candidate"
+E       AssertionError: assert 'Lower candidate' == 'Best candidate'
+E
+E         - Best candidate
+E         ? ^ ^^
+E         + Lower candidate
+E         ? ^^^ ^
+
+backend/tests/test_recognition_selection.py:21: AssertionError</failure></testcase><testcase classname="backend.tests.test_recognition_selection" name="test_recognition_ranks_candidates_before_applying_selection_threshold[0.449-None-True]" time="0.132"><failure message="AssertionError: assert 'Lower candidate' == 'Best candidate'&#10;  &#10;  - Best candidate&#10;  ? ^ ^^&#10;  + Lower candidate&#10;  ? ^^^ ^">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f8334f47d90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTczODh9.qcaNyD2vLdMdcJYoS050vnev-njaDbmN-NlT6ysV9w4'}, 'device_id': '43582328-f39e-451c-9828-9d5e9c37fc4c', ...}
+confidence = 0.449, default = None, retake = True
+
+    @pytest.mark.parametrize("confidence,default,retake", [(0.75, 0, False), (0.749, None, False), (0.45, None, False), (0.449, None, True)])
+    def test_recognition_ranks_candidates_before_applying_selection_threshold(system, confidence, default, retake):
+        with system["app"].state.sessions.begin() as db:
+            db.add(PlantImage(
+                device_id=system["device_id"], plant_id=system["plant_id"], file_path="test/selection.jpg",
+                image_type="whole", source_type="mock", recognition_result={
+                    "candidates": [
+                        {"common_name": "Lower", "scientific_name": "Lower candidate", "confidence": 0.1},
+                        {"common_name": "Best", "scientific_name": "Best candidate", "confidence": confidence}
+                    ], "provider": "mock", "source_type": "mock", "input_quality": "good"
+                }
+            ))
+        response = system["client"].get(f"/api/v1/plants/{system['plant_id']}/recognition", headers=system["user_headers"])
+        assert response.status_code == 200
+        value = response.json()
+&gt;       assert value["result"]["candidates"][0]["scientific_name"] == "Best candidate"
+E       AssertionError: assert 'Lower candidate' == 'Best candidate'
+E
+E         - Best candidate
+E         ? ^ ^^
+E         + Lower candidate
+E         ? ^^^ ^
+
+backend/tests/test_recognition_selection.py:21: AssertionError</failure></testcase></testsuite></testsuites>

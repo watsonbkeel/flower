@@ -1,0 +1,27 @@
+{
+  "source_type": "mock",
+  "report": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "manual_selection": "PASS",
+      "candidate_selection": "PASS",
+      "low_confidence": "PASS",
+      "overflow": "PASS",
+      "errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "manual_selection": "PASS",
+      "candidate_selection": "PASS",
+      "low_confidence": "PASS",
+      "overflow": "PASS",
+      "errors": []
+    }
+  ]
+}

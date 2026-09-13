@@ -1,0 +1,108 @@
+TAP version 13
+# Subtest: every native template handler exists
+ok 1 - every native template handler exists
+  ---
+  duration_ms: 7.972605
+  type: 'test'
+  ...
+# Subtest: memory job errors are handled and polling resumes on show
+ok 2 - memory job errors are handled and polling resumes on show
+  ---
+  duration_ms: 1.311409
+  type: 'test'
+  ...
+# Subtest: native care page exposes weather freshness and source independently of knowledge
+ok 3 - native care page exposes weather freshness and source independently of knowledge
+  ---
+  duration_ms: 21.049478
+  type: 'test'
+  ...
+# Subtest: new care and memory actions use distinct request keys
+ok 4 - new care and memory actions use distinct request keys
+  ---
+  duration_ms: 2.14641
+  type: 'test'
+  ...
+# Subtest: new low-confidence image clears previous candidate selection
+not ok 5 - new low-confidence image clears previous candidate selection
+  ---
+  duration_ms: 4.029937
+  type: 'test'
+  location: '/root/flower/miniapp/tests/recognition.test.js:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    0 !== -1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: -1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/root/flower/miniapp/tests/recognition.test.js:33:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: the last explicit manual edit or candidate choice determines submitted species
+not ok 6 - the last explicit manual edit or candidate choice determines submitted species
+  ---
+  duration_ms: 1.101976
+  type: 'test'
+  location: '/root/flower/miniapp/tests/recognition.test.js:37:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    0 !== -1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: -1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/root/flower/miniapp/tests/recognition.test.js:42:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pending and claimed never mean watering complete
+ok 7 - pending and claimed never mean watering complete
+  ---
+  duration_ms: 0.998043
+  type: 'test'
+  ...
+# Subtest: data coverage and demo sources stay visible
+ok 8 - data coverage and demo sources stay visible
+  ---
+  duration_ms: 0.291537
+  type: 'test'
+  ...
+# Subtest: uncertain status disables manual watering
+ok 9 - uncertain status disables manual watering
+  ---
+  duration_ms: 0.202796
+  type: 'test'
+  ...
+# Subtest: chart points retain time gaps and sources
+ok 10 - chart points retain time gaps and sources
+  ---
+  duration_ms: 0.250969
+  type: 'test'
+  ...
+# Subtest: weather preserves zero readings and distinguishes absent, stale and mismatched data
+ok 11 - weather preserves zero readings and distinguishes absent, stale and mismatched data
+  ---
+  duration_ms: 19.644371
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 9
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 271.575984

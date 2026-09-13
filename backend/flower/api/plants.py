@@ -88,8 +88,15 @@ def recognition(plant_id: UUID, user=Depends(require_user), db=Depends(get_db)):
     images = [image for image in images if image.recognition_result]
     if not images:
         return {"result": None, "manual_input_available": True}
-    result = images[0].recognition_result
-    confidence = max(c["confidence"] for c in result["candidates"])
+    result = {
+        **images[0].recognition_result,
+        "candidates": sorted(
+            images[0].recognition_result["candidates"],
+            key=lambda candidate: candidate["confidence"],
+            reverse=True,
+        ),
+    }
+    confidence = result["candidates"][0]["confidence"]
     return {
         "result": result,
         "image_id": images[0].id,

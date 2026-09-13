@@ -1,6 +1,6 @@
 const api = require('../../services/api');
 const view = require('../../utils/viewmodel');
-Page({data: {plant: {}, profile: null, candidates: [], selected: -1, commonName: '', scientificName: '', jobText: '', error: '', busy: false},
+Page({data: {plant: {}, profile: null, candidates: [], selected: -1, retakeRecommended: false, commonName: '', scientificName: '', jobText: '', error: '', busy: false},
   onShow() { this.load(); clearInterval(this.timer); this.timer = setInterval(() => this.load(), 2000); },
   onHide() { clearInterval(this.timer); }, onUnload() { clearInterval(this.timer); },
   async load() {
@@ -11,8 +11,12 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, commonName:
       const recognition = await api.request(`/plants/${pid}/recognition`);
       this.setData({plant: status.plant, profile: status.care_profile,
         weather: view.weatherView(status.care_profile && status.care_profile.profile.weather, status.device && status.device.source_type),
-        candidates: recognition.result ? recognition.result.candidates : []});
-      if (!this.selectionTouched && recognition.default_selection !== undefined && recognition.default_selection !== null) this.setData({selected: recognition.default_selection});
+        candidates: recognition.result ? recognition.result.candidates : [], retakeRecommended: !!recognition.retake_recommended});
+      if (this.recognitionImageId !== recognition.image_id) {
+        this.recognitionImageId = recognition.image_id;
+        this.selectionTouched = false;
+      }
+      if (!this.selectionTouched) this.setData({selected: recognition.default_selection == null ? -1 : recognition.default_selection});
       const jobId = wx.getStorageSync('job:' + pid);
       if (jobId) {
         const job = await api.request(`/jobs/${jobId}`);
@@ -21,13 +25,13 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, commonName:
     } catch (error) { this.setData({error: error.message}); }
   },
   choose(event) { this.selectionTouched = true; this.setData({selected: Number(event.detail.value)}); },
-  field(event) { this.setData({[event.currentTarget.dataset.field]: event.detail.value}); },
+  field(event) { this.selectionTouched = true; this.setData({[event.currentTarget.dataset.field]: event.detail.value, selected: -1}); },
   async action(fn) { this.setData({busy: true, error: ''}); try { await fn(); await this.load(); } catch (error) { this.setData({error: error.message}); } finally { this.setData({busy: false}); } },
   capture() { this.action(async () => { await api.request(`/plants/${this.data.plant.id}/capture`, 'POST', {}, {'Idempotency-Key': api.key()}); this.setData({jobText: '等待设备拍照'}); }); },
   confirmSpecies() { this.action(async () => {
     const candidate = this.data.candidates[this.data.selected];
-    const manual = !!this.data.scientificName;
-    if (!manual && !candidate) throw new Error('请选择候选或填写植物名称');
+    const manual = !candidate;
+    if (manual && !this.data.scientificName.trim()) throw new Error('请选择候选或填写植物名称');
     await api.request(`/plants/${this.data.plant.id}/confirm-species`, 'POST', {
       common_name: manual ? this.data.commonName : candidate.common_name,
       scientific_name: manual ? this.data.scientificName : candidate.scientific_name,
