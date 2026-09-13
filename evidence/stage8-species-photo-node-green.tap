@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: every native template handler exists
+ok 1 - every native template handler exists
+  ---
+  duration_ms: 8.330307
+  type: 'test'
+  ...
+# Subtest: memory job errors are handled and polling resumes on show
+ok 2 - memory job errors are handled and polling resumes on show
+  ---
+  duration_ms: 1.255942
+  type: 'test'
+  ...
+# Subtest: native care page exposes weather freshness and source independently of knowledge
+ok 3 - native care page exposes weather freshness and source independently of knowledge
+  ---
+  duration_ms: 20.951448
+  type: 'test'
+  ...
+# Subtest: new care and memory actions use distinct request keys
+ok 4 - new care and memory actions use distinct request keys
+  ---
+  duration_ms: 2.573961
+  type: 'test'
+  ...
+# Subtest: new low-confidence image clears previous candidate selection
+ok 5 - new low-confidence image clears previous candidate selection
+  ---
+  duration_ms: 3.409949
+  type: 'test'
+  ...
+# Subtest: the last explicit manual edit or candidate choice determines submitted species
+ok 6 - the last explicit manual edit or candidate choice determines submitted species
+  ---
+  duration_ms: 1.301551
+  type: 'test'
+  ...
+# Subtest: capture and recognition progress replace old candidates without changing manual input
+ok 7 - capture and recognition progress replace old candidates without changing manual input
+  ---
+  duration_ms: 2.617194
+  type: 'test'
+  ...
+# Subtest: pending and claimed never mean watering complete
+ok 8 - pending and claimed never mean watering complete
+  ---
+  duration_ms: 1.017362
+  type: 'test'
+  ...
+# Subtest: data coverage and demo sources stay visible
+ok 9 - data coverage and demo sources stay visible
+  ---
+  duration_ms: 0.353382
+  type: 'test'
+  ...
+# Subtest: uncertain status disables manual watering
+ok 10 - uncertain status disables manual watering
+  ---
+  duration_ms: 0.22411
+  type: 'test'
+  ...
+# Subtest: chart points retain time gaps and sources
+ok 11 - chart points retain time gaps and sources
+  ---
+  duration_ms: 0.268917
+  type: 'test'
+  ...
+# Subtest: weather preserves zero readings and distinguishes absent, stale and mismatched data
+ok 12 - weather preserves zero readings and distinguishes absent, stale and mismatched data
+  ---
+  duration_ms: 19.125048
+  type: 'test'
+  ...
+# Subtest: care card validity takes precedence over previous confirmation
+ok 13 - care card validity takes precedence over previous confirmation
+  ---
+  duration_ms: 0.756008
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 285.068889

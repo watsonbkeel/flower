@@ -28,6 +28,7 @@ class SpeciesConfirmation(StrictModel):
     scientific_name: str = Field(min_length=1, max_length=200)
     input_method: Literal["manual", "recognition"]
     confidence: float | None = Field(default=None, ge=0, le=1)
+    image_id: UUID | None = None
 
 
 class Toggle(StrictModel):

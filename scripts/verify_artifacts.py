@@ -34,7 +34,7 @@ def main():
             leaked.append(name)
     assert not leaked, "A runtime secret appeared in a deliverable"
     suite = (
-        ET.parse(root / "evidence/stage8-recognition-lifecycle-postgres.xml")
+        ET.parse(root / "evidence/stage8-species-photo-postgres.xml")
         .getroot()
         .find("testsuite")
     )

@@ -93,7 +93,7 @@ async function renderCare() {
       speciesForm.querySelectorAll('[name="candidate"]').forEach(radio => { radio.checked = false; });
     };
   });
-  speciesForm.onsubmit = async event => { event.preventDefault(); const form = new FormData(event.target); const selected = form.get('candidate'); const candidate = selected !== null ? speciesForm.candidates[Number(selected)] : null; try { await api(`/plants/${plantId}/confirm-species`, 'POST', {common_name:candidate ? candidate.common_name : form.get('common_name'), scientific_name:candidate ? candidate.scientific_name : form.get('scientific_name'), input_method:candidate ? 'recognition' : 'manual', confidence:candidate ? candidate.confidence : null}); await render(); } catch(e) { error(e.message); } };
+  speciesForm.onsubmit = async event => { event.preventDefault(); const form = new FormData(event.target); const selected = form.get('candidate'); const candidate = selected !== null ? speciesForm.candidates[Number(selected)] : null; try { await api(`/plants/${plantId}/confirm-species`, 'POST', {image_id:speciesForm.imageId || null, common_name:candidate ? candidate.common_name : form.get('common_name'), scientific_name:candidate ? candidate.scientific_name : form.get('scientific_name'), input_method:candidate ? 'recognition' : 'manual', confidence:candidate ? candidate.confidence : null}); await render(); } catch(e) { error(e.message); } };
 }
 async function refreshRecognition() {
   const recognition = await api(`/plants/${plantId}/recognition`);
@@ -108,6 +108,7 @@ function updateRecognition(recognition) {
     form.selectionTouched = false;
   }
   form.candidates = recognition.result && recognition.result.candidates || [];
+  form.imageId = recognition.image_id;
   const signature = JSON.stringify([identity, form.candidates]);
   if (signature !== form.recognitionSignature) {
     form.recognitionSignature = signature;

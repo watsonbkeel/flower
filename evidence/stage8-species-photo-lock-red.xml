@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="3.464" timestamp="2026-09-13T18:59:53.117181+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_species_photo" name="test_image_cleanup_skips_photo_locked_for_confirmation" time="3.392"><failure message="TimeoutError">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f0714f78050&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg5OTN9.gilLEHf_lQHYneopLeJRgFXZ2rCVwvx0-JoDXlhFotU'}, 'device_id': 'ccc4db49-b7db-431e-bb7c-8db2ad3c13e7', ...}
+
+    def test_image_cleanup_skips_photo_locked_for_confirmation(system):
+        sessions = system["app"].state.sessions
+        if system["app"].state.engine.dialect.name != "postgresql":
+            pytest.skip("PostgreSQL row-lock test")
+        image_id, path = make_image(system)
+        with sessions.begin() as db:
+            db.get(PlantImage, image_id).expires_at = utcnow() - timedelta(seconds=1)
+
+        def clean():
+            with sessions.begin() as db:
+                return cleanup(db, system["settings"], utcnow())
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with sessions.begin() as db:
+                image = db.scalar(select(PlantImage).where(PlantImage.id == image_id).with_for_update())
+                future = pool.submit(clean)
+&gt;               assert future.result(timeout=3)["images"] == 0
+                       ^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_species_photo.py:106:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = None, timeout = 3
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+
+        Returns:
+            The result of the call that the future represents.
+
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+
+                self._condition.wait(timeout)
+
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+&gt;                   raise TimeoutError()
+E                   TimeoutError
+
+/usr/lib/python3.13/concurrent/futures/_base.py:458: TimeoutError</failure></testcase></testsuite></testsuites>

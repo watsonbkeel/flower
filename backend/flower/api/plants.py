@@ -150,6 +150,20 @@ def confirm_species(
         )
     ):
         raise DomainError("ACTIVE_COMMAND")
+    image = None
+    if data.image_id:
+        image = db.scalar(
+            select(PlantImage)
+            .where(
+                PlantImage.id == str(data.image_id),
+                PlantImage.plant_id == plant.id,
+                PlantImage.device_id == plant.device_id,
+                PlantImage.image_type.in_(["whole", "leaf", "flower"]),
+            )
+            .with_for_update()
+        )
+        if image is None:
+            raise DomainError("NOT_FOUND", status=404)
     plant.common_name, plant.scientific_name = data.common_name, data.scientific_name
     plant.input_method, plant.recognition_confidence = data.input_method, data.confidence
     plant.recognition_confirmed, plant.auto_mode = True, False
@@ -159,15 +173,9 @@ def confirm_species(
         profile.valid_until = min(profile.valid_until, now)
     for policy in db.scalars(select(FallbackPolicy).where(FallbackPolicy.plant_id == plant.id)):
         policy.valid_until = min(policy.valid_until, now)
-    latest = db.scalar(
-        select(PlantImage)
-        .where(PlantImage.plant_id == plant.id)
-        .order_by(PlantImage.created_at.desc())
-        .limit(1)
-    )
-    if latest:
-        latest.expires_at = None
-        plant.photo_path = latest.file_path
+    if image:
+        image.expires_at = None
+        plant.photo_path = image.file_path
     return serialize(plant)
 
 

@@ -46,6 +46,7 @@ test('the last explicit manual edit or candidate choice determines submitted spe
   page.confirmSpecies(); await submitted();
   assert.equal(input.calls[0].scientific_name, 'Candidate species');
   assert.equal(input.calls[0].input_method, 'recognition');
+  assert.equal(input.calls[0].image_id, 'image-1');
   page.field({currentTarget: {dataset: {field: 'scientificName'}}, detail: {value: 'New manual species'}});
   page.confirmSpecies(); await submitted();
   assert.equal(input.calls[1].scientific_name, 'New manual species');

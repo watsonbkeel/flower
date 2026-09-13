@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="1.040" timestamp="2026-09-13T18:59:09.530738+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_species_photo" name="test_confirmation_keeps_selected_photo_despite_newer_upload" time="0.429"><failure message="assert 422 == 200&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f3179177cb0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg5NDl9.BmISxAC3uM7saofaH3xeXQhykymi33XLdEsopijBM2s'}, 'device_id': '804af43f-f846-4f25-ad6a-52d7d007f142', ...}
+
+    def test_confirmation_keeps_selected_photo_despite_newer_upload(system):
+        selected, path = make_image(system)
+        later, _ = make_image(system)
+        memory, _ = make_image(system, kind="memory")
+        response = confirm(system, image_id=selected)
+&gt;       assert response.status_code == 200
+E       assert 422 == 200
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+backend/tests/test_species_photo.py:42: AssertionError</failure></testcase><testcase classname="backend.tests.test_species_photo" name="test_confirmation_without_photo_does_not_replace_existing_main_image" time="0.206"><failure message="AssertionError: assert 'mock/1e0e7a8...4dd3a5420.jpg' == 'mock/66d5a4f...bf849a836.jpg'&#10;  &#10;  - mock/66d5a4ff-805b-4f19-a4b1-e6cbf849a836.jpg&#10;  + mock/1e0e7a88-70c1-4cc3-ab9d-69e4dd3a5420.jpg">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f31779a4b90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg5NTB9.0MwSUySSnKISS0L6fPIVH1gn1Tz10P7SGb1-O2jhC5w'}, 'device_id': '30136b6a-4863-4924-992e-f3377ddb23ee', ...}
+
+    def test_confirmation_without_photo_does_not_replace_existing_main_image(system):
+        _, path = make_image(system)
+        with system["app"].state.sessions.begin() as db:
+            db.get(Plant, system["plant_id"]).photo_path = path
+        make_image(system, kind="memory")
+        response = confirm(system)
+        assert response.status_code == 200
+&gt;       assert response.json()["photo_path"] == path
+E       AssertionError: assert 'mock/1e0e7a8...4dd3a5420.jpg' == 'mock/66d5a4f...bf849a836.jpg'
+E
+E         - mock/66d5a4ff-805b-4f19-a4b1-e6cbf849a836.jpg
+E         + mock/1e0e7a88-70c1-4cc3-ab9d-69e4dd3a5420.jpg
+
+backend/tests/test_species_photo.py:57: AssertionError</failure></testcase><testcase classname="backend.tests.test_species_photo" name="test_confirmation_rejects_ineligible_photo_without_changing_species[memory]" time="0.112"><failure message="assert 422 == 404&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f31775cf890&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg5NTB9.0lhLi-X0aPUgIANgF4xgkC1ZcXs3tHzUQiXivgfovA4'}, 'device_id': '17f92bd4-c751-4b43-ae62-6bf370929044', ...}
+kind = 'memory'
+
+    @pytest.mark.parametrize("kind", ["memory", "other_plant", "missing"])
+    def test_confirmation_rejects_ineligible_photo_without_changing_species(system, kind):
+        pid = system["plant_id"]
+        if kind == "other_plant":
+            with system["app"].state.sessions.begin() as db:
+                plant = Plant(
+                    user_id=system["user_id"],
+                    device_id=system["device_id"],
+                    name="Other",
+                    is_primary=False,
+                )
+                db.add(plant)
+                db.flush()
+                pid = plant.id
+        image_id = (
+            str(uuid4())
+            if kind == "missing"
+            else make_image(system, kind="memory" if kind == "memory" else "whole", plant_id=pid)[0]
+        )
+        response = confirm(system, image_id=image_id, scientific_name="Unwanted replacement")
+&gt;       assert response.status_code == 404
+E       assert 422 == 404
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+backend/tests/test_species_photo.py:80: AssertionError</failure></testcase><testcase classname="backend.tests.test_species_photo" name="test_confirmation_rejects_ineligible_photo_without_changing_species[other_plant]" time="0.111"><failure message="assert 422 == 404&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f31785cf110&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg5NTB9.9TvS5kykHfMtvc6SHltqZQKmCGd15j8jaWnipZhHI0I'}, 'device_id': 'eba8de88-edbe-41ac-b071-26311fb5e710', ...}
+kind = 'other_plant'
+
+    @pytest.mark.parametrize("kind", ["memory", "other_plant", "missing"])
+    def test_confirmation_rejects_ineligible_photo_without_changing_species(system, kind):
+        pid = system["plant_id"]
+        if kind == "other_plant":
+            with system["app"].state.sessions.begin() as db:
+                plant = Plant(
+                    user_id=system["user_id"],
+                    device_id=system["device_id"],
+                    name="Other",
+                    is_primary=False,
+                )
+                db.add(plant)
+                db.flush()
+                pid = plant.id
+        image_id = (
+            str(uuid4())
+            if kind == "missing"
+            else make_image(system, kind="memory" if kind == "memory" else "whole", plant_id=pid)[0]
+        )
+        response = confirm(system, image_id=image_id, scientific_name="Unwanted replacement")
+&gt;       assert response.status_code == 404
+E       assert 422 == 404
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+backend/tests/test_species_photo.py:80: AssertionError</failure></testcase><testcase classname="backend.tests.test_species_photo" name="test_confirmation_rejects_ineligible_photo_without_changing_species[missing]" time="0.110"><failure message="assert 422 == 404&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f31771cdd10&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTg5NTB9.K2XFkZ3HhNAYrkKyQsEegzXuqeWSiS5SYp8kLaMiNTw'}, 'device_id': '02c5f9f5-a2e9-45cb-90b6-02d8031e0ce4', ...}
+kind = 'missing'
+
+    @pytest.mark.parametrize("kind", ["memory", "other_plant", "missing"])
+    def test_confirmation_rejects_ineligible_photo_without_changing_species(system, kind):
+        pid = system["plant_id"]
+        if kind == "other_plant":
+            with system["app"].state.sessions.begin() as db:
+                plant = Plant(
+                    user_id=system["user_id"],
+                    device_id=system["device_id"],
+                    name="Other",
+                    is_primary=False,
+                )
+                db.add(plant)
+                db.flush()
+                pid = plant.id
+        image_id = (
+            str(uuid4())
+            if kind == "missing"
+            else make_image(system, kind="memory" if kind == "memory" else "whole", plant_id=pid)[0]
+        )
+        response = confirm(system, image_id=image_id, scientific_name="Unwanted replacement")
+&gt;       assert response.status_code == 404
+E       assert 422 == 404
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+backend/tests/test_species_photo.py:80: AssertionError</failure></testcase></testsuite></testsuites>

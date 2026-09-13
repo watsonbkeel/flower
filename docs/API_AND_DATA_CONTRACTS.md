@@ -82,6 +82,8 @@ GET  /api/v1/images/{id}
 
 图片作业未完成时返回 `queued`/`running`，失败返回 `failed`，不退回历史候选。成功拍照但范围内没有图片返回 `image_missing`；无拍摄记录返回 `empty`。`succeeded` 才包含可确认候选。客户端轮询更新识别区域，并保留同图的显式选择与手动输入。
 
+`confirm-species` 可提交 `image_id`（UUID或null），客户端使用当前识别响应中的图片ID。后端仅接受当前植物、设备的 whole/leaf/flower 图片，将所选图片长期保留为主图；跨植物、记忆或不存在的图片返回404，整个确认事务回滚。不传图片ID时保持已有主图，不自动采用后续上传。
+
 ## 6. 健康端点
 
 `GET /health`：进程存活，不访问外部 Provider。

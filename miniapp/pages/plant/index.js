@@ -35,6 +35,7 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, retakeRecom
     const manual = !candidate;
     if (manual && !this.data.scientificName.trim()) throw new Error('请选择候选或填写植物名称');
     await api.request(`/plants/${this.data.plant.id}/confirm-species`, 'POST', {
+      image_id: this.recognitionImageId || null,
       common_name: manual ? this.data.commonName : candidate.common_name,
       scientific_name: manual ? this.data.scientificName : candidate.scientific_name,
       input_method: manual ? 'manual' : 'recognition', confidence: manual ? null : candidate.confidence});

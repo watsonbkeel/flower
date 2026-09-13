@@ -136,7 +136,9 @@ def cleanup(db, settings, now):
             TelemetryHourly.raw_purged.is_(True),
         )
     ).rowcount
-    for image in db.scalars(select(PlantImage).where(PlantImage.expires_at < now)):
+    for image in db.scalars(
+        select(PlantImage).where(PlantImage.expires_at < now).with_for_update(skip_locked=True)
+    ):
         pinned = db.scalar(
             select(Plant.id).where(Plant.photo_path == image.file_path).limit(1)
         ) or db.scalar(select(Memory.id).where(Memory.photo_path == image.file_path).limit(1))

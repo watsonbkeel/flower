@@ -31,10 +31,10 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 
 | 命令/范围 | 结果 | 证据 |
 |---|---|---|
-| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-recognition-lifecycle-postgres.xml` | PASS，209项 | [PostgreSQL回归](evidence/stage8-recognition-lifecycle-postgres.xml) |
+| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-species-photo-postgres.xml` | PASS，215项 | [PostgreSQL回归](evidence/stage8-species-photo-postgres.xml) |
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
-| `npm --prefix miniapp test` | PASS，13项 | [Node执行记录](evidence/stage8-recognition-lifecycle-node-green.tap) |
+| `npm --prefix miniapp test` | PASS，13项 | [Node执行记录](evidence/stage8-species-photo-node-green.tap) |
 | 识别候选排序、重拍选择清除、手动/候选切换、低置信度提示 | PASS，Mock，桌面/手机 | [识别确认](evidence/stage8-recognition.md) |
 | Playwright桌面1440x1000、手机390x844六页面/图像/canvas/溢出 | PASS，Mock | [浏览器检查](evidence/stage5-browser.json) |
 | 浏览器pending到succeeded、养护确认、记忆规则、自动开关 | PASS，Mock | [工作流](evidence/stage8-browser-workflow.json) |
@@ -150,6 +150,8 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 识别响应按置信度降序返回候选，最高项达到0.75才默认选择；低于0.45提示重拍。原生页面收到新图片时清除旧选择，同图轮询保留用户输入。两个客户端均按最后一次手动编辑或候选选择提交品种，仍须用户确认。
 
 重拍期间不再显示旧拍摄候选。接口按最新拍照命令的服务器执行起止时间限定图片范围，排除记忆照片，明确显示拍照、排队、识别和失败状态；最新图片失败也不回退历史结果。浏览器与原生页面轮询更新结果，保留同图用户选择；缺图与拍照失败不误报补水失败。契约与测试见`evidence/stage8-recognition-lifecycle.md`。
+
+品种确认提交当前识别的图片ID，后端验证植物、设备及图片用途并锁定保存主图，不再自动使用最后上传的照片。无图片ID时保留现有主图。清理任务锁定过期图片并跳过正在确认的记录，避免确认与清理竞争后主图引用丢失。见`evidence/stage8-species-photo.md`。
 
 养护卡按冻结规格12.4显示有效期与更新提示。过期或期限异常时，历史已确认状态不再显示为当前有效；确认按钮禁用，保留重新生成入口。浏览器局部刷新状态，原生页面使用同一状态模型，不清空用户的品种输入。见`evidence/stage8-care-validity.md`。
 

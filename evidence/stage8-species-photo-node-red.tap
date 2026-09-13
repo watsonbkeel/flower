@@ -1,0 +1,105 @@
+TAP version 13
+# Subtest: every native template handler exists
+ok 1 - every native template handler exists
+  ---
+  duration_ms: 12.338577
+  type: 'test'
+  ...
+# Subtest: memory job errors are handled and polling resumes on show
+ok 2 - memory job errors are handled and polling resumes on show
+  ---
+  duration_ms: 2.03282
+  type: 'test'
+  ...
+# Subtest: native care page exposes weather freshness and source independently of knowledge
+ok 3 - native care page exposes weather freshness and source independently of knowledge
+  ---
+  duration_ms: 36.11585
+  type: 'test'
+  ...
+# Subtest: new care and memory actions use distinct request keys
+ok 4 - new care and memory actions use distinct request keys
+  ---
+  duration_ms: 3.367528
+  type: 'test'
+  ...
+# Subtest: new low-confidence image clears previous candidate selection
+ok 5 - new low-confidence image clears previous candidate selection
+  ---
+  duration_ms: 5.252284
+  type: 'test'
+  ...
+# Subtest: the last explicit manual edit or candidate choice determines submitted species
+not ok 6 - the last explicit manual edit or candidate choice determines submitted species
+  ---
+  duration_ms: 4.222252
+  type: 'test'
+  location: '/root/flower/miniapp/tests/recognition.test.js:37:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + undefined
+    - 'image-1'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'image-1'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/root/flower/miniapp/tests/recognition.test.js:49:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: capture and recognition progress replace old candidates without changing manual input
+ok 7 - capture and recognition progress replace old candidates without changing manual input
+  ---
+  duration_ms: 3.926809
+  type: 'test'
+  ...
+# Subtest: pending and claimed never mean watering complete
+ok 8 - pending and claimed never mean watering complete
+  ---
+  duration_ms: 1.505015
+  type: 'test'
+  ...
+# Subtest: data coverage and demo sources stay visible
+ok 9 - data coverage and demo sources stay visible
+  ---
+  duration_ms: 0.503801
+  type: 'test'
+  ...
+# Subtest: uncertain status disables manual watering
+ok 10 - uncertain status disables manual watering
+  ---
+  duration_ms: 0.311932
+  type: 'test'
+  ...
+# Subtest: chart points retain time gaps and sources
+ok 11 - chart points retain time gaps and sources
+  ---
+  duration_ms: 0.424896
+  type: 'test'
+  ...
+# Subtest: weather preserves zero readings and distinguishes absent, stale and mismatched data
+ok 12 - weather preserves zero readings and distinguishes absent, stale and mismatched data
+  ---
+  duration_ms: 32.64513
+  type: 'test'
+  ...
+# Subtest: care card validity takes precedence over previous confirmation
+ok 13 - care card validity takes precedence over previous confirmation
+  ---
+  duration_ms: 1.346616
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 12
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 430.782008
