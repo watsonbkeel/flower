@@ -112,3 +112,19 @@ production 必须使用有效 HTTPS 域名。
 ## 11. 发布容量门
 
 初始 Worker 并发 1。与 aibot 共存验收至少记录 CPU、可用内存、I/O、Flower 快速接口 p95 和真实语音体验。目标：Flower 快速接口 p95 <500ms；aibot 真实对话性能相对其单独运行基线劣化不超过20%。无真实高峰样本时标 NOT_RUN/BLOCKED，不得伪称 PASS。
+
+## 12. 本仓库可执行工具（尚未生产运行）
+
+- `scripts/release.py --output .runtime/releases` 从干净commit生成开发发布包，未build时manifest明确为NOT_BUILT。
+- 获得窗口后构建`docker build -t flower-app:$(git rev-parse HEAD) backend`，拉取Compose指定的PG/proxy镜像，重新生成`--inspect-images`清单。清单保存三个image ID，release.env将PG/proxy锁定为ID。
+- 将当前和上一release的三个镜像分别`docker save`到受控存储并计算SHA256；恢复时先`docker load`，生产脚本校验tag对应的实际ID，禁止现场build。
+- `scripts/production.py deploy /srv/flower/releases/<sha>`和`rollback`仅在环境`FLOWER_PRODUCTION_AUTHORIZED=1`的明确授权窗口使用。它们不会安装Docker或修改宿主Nginx、防火墙、VPN。
+- `nginx/flower-api.host.conf`为独立站点模板，证书路径须先存在；不得直接覆盖现有站点。
+- `/srv/flower/shared/uploads`及`backups`由容器UID 10001可写；PG目录由指定PG镜像用户维护，不能混用aibot目录。
+- `deployment/flower-backup.timer`、`.service`与`backup-production.sh`为待安装模板。备份期间停止API/Worker写入；需在窗口中验证该短暂停机及设备fallback。
+- 备份CLI：`python scripts/backup.py backup --directory <backups> --uploads <uploads> --manifest <release.json>`，`DATABASE_URL`仅从环境读取；DB密码不进入命令行。
+- 恢复CLI：`python scripts/backup.py restore --directory <one-backup> --uploads <new-empty-path> --target-database flower_restore_<name>`，仅创建独立新DB，不覆盖现有数据。应使用专用测试PG连接。
+- 首次部署前，先仅启动Flower PG，导出空库/已有数据备份，再做显式migration。生产发布所需`verified-backup.json`必须对应当次已验证备份及独立恢复记录，不得以空占位文件替代。
+- `scripts/preflight.py <private-output> --compare <before>`只在正式窗口运行；原始网络信息与Nginx哈希记录应保持私有，脱敏后才进入evidence。
+
+当前开发环境已运行真实PostgreSQL备份/独立恢复测试，但Docker build、Compose config/runtime、生产timer、真实域名和上一镜像回滚仍为NOT_RUN/BLOCKED。

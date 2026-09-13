@@ -78,7 +78,7 @@ def main():
             query={"host": str(root / "socket")},
         ).render_as_string(hide_password=False)
         command = sys.argv[1:] or [".venv/bin/pytest"]
-        result = subprocess.run(command, env=os.environ | {"TEST_DATABASE_URL": url})
+        result = subprocess.run(command, env=env | {"TEST_DATABASE_URL": url, "FLOWER_PG_BIN": str(binary)})
         return result.returncode
     except subprocess.CalledProcessError as exc:
         print(exc.stdout)

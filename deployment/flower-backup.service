@@ -1,0 +1,9 @@
+[Unit]
+Description=Flower database and uploads backup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/flower/current
+ExecStart=/bin/sh /srv/flower/current/deployment/backup-production.sh

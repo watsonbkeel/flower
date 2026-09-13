@@ -1,7 +1,7 @@
 # STATUS.md
 
 - 当前规格：v2.2.2 Server-Integrated
-- 当前 Stage：6
+- 当前 Stage：7
 - 实现状态：IN_PROGRESS
 - 架构审计：COMPLETE（只读，2026-09-13）
 - 最近更新：2026-09-13
@@ -17,6 +17,7 @@
 - [x] Stage 4：知识/天气/LLM Provider、完整确定性决策、保守策略编译、记忆确认及生效记录；累计123项PostgreSQL测试通过
 - [x] Stage 5：微信登录合约、原生七页面、记忆编辑/照片、任务恢复、鉴权趋势与浏览器Mock预览；128项PostgreSQL测试、6项Node测试通过
 - [x] Stage 6：完整小时幂等聚合、逐字段复核后30天raw清理、365天hourly保留、图片/任务/命令清理及Worker调度；132项累计PostgreSQL测试通过
+- [x] Stage 7开发准备：SHA发布清单、显式migration/无build回滚脚本、Nginx/timer模板、DB+uploads+manifest备份与独立PG恢复；136项累计通过，依赖审计无已知漏洞
 
 ## 当前进行
 
@@ -25,7 +26,7 @@
 
 ## 下一步
 
-- [ ] Stage 7：发布清单、备份恢复、回滚与部署准备；不执行生产变更
+- [ ] Stage 8：运行时故障注入、离线演示、最终验收矩阵；实物与生产仍硬阻塞
 
 ## 开发证据
 
