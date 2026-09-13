@@ -23,8 +23,13 @@ class ModeTracker:
 
     def update(self, state, *, now_mono, cloud_age, policy_valid):
         from flower_pi.safety.gate import safety_reason
+
         reason = safety_reason(state, check_activity=False)
-        if reason or cloud_age >= self.hold_after or (cloud_age >= self.conservative_after and not policy_valid):
+        if (
+            reason
+            or cloud_age >= self.hold_after
+            or (cloud_age >= self.conservative_after and not policy_valid)
+        ):
             self.mode = "SAFE_HOLD"
             self.healthy_since = None
         elif cloud_age >= self.conservative_after:

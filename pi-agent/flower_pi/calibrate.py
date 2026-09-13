@@ -1,4 +1,5 @@
 """Import measured values; this tool never energizes the pump."""
+
 import argparse
 import json
 from pathlib import Path
@@ -19,8 +20,15 @@ def main():
     data = json.loads(args.measurements.read_text())
     if data.get("source_type") != "real":
         raise ValueError("真实标定只接受 real 测量记录")
-    calibration = validate_measurements(data["flow_volumes_10sec_ml"], data["afterdrip_10min_ml"],
-        data["min_run_sec"], data["adc_dry"], data["adc_wet"], data["insert_depth_mark"], TrustedClock().utcnow())
+    calibration = validate_measurements(
+        data["flow_volumes_10sec_ml"],
+        data["afterdrip_10min_ml"],
+        data["min_run_sec"],
+        data["adc_dry"],
+        data["adc_wet"],
+        data["insert_depth_mark"],
+        TrustedClock().utcnow(),
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_suffix(".tmp")
     temporary.write_text(calibration.model_dump_json(indent=2))

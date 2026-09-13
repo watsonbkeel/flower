@@ -15,7 +15,11 @@ def safety_reason(state, check_activity=True):
         return "BUSY"
     if state.water_level_ok is not True:
         return "LOW_WATER"
-    if state.soil_pct is None or not math.isfinite(state.soil_pct) or not 0 <= state.soil_pct <= 100:
+    if (
+        state.soil_pct is None
+        or not math.isfinite(state.soil_pct)
+        or not 0 <= state.soil_pct <= 100
+    ):
         return "SOIL_SENSOR_FAULT"
     if not state.time_trusted:
         return "TIME_UNTRUSTED"

@@ -5,8 +5,12 @@ import time
 
 def ntp_synchronized():
     try:
-        result = subprocess.run(["timedatectl", "show", "-p", "NTPSynchronized", "--value"],
-                                capture_output=True, text=True, timeout=2)
+        result = subprocess.run(
+            ["timedatectl", "show", "-p", "NTPSynchronized", "--value"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
         return result.returncode == 0 and result.stdout.strip() == "yes"
     except (OSError, subprocess.TimeoutExpired):
         return False

@@ -34,6 +34,7 @@ class ADS1115:
         import busio
         import adafruit_ads1x15.ads1115 as ADS
         from adafruit_ads1x15.analog_in import AnalogIn
+
         self.device = ADS.ADS1115(busio.I2C(board.SCL, board.SDA), address=0x48, gain=1)
         self.input = AnalogIn(self.device, channel)
 

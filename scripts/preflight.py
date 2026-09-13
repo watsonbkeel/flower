@@ -1,4 +1,5 @@
 """Read-only shared-host snapshot; run only in a deployment validation window."""
+
 import argparse
 import hashlib
 import json
@@ -8,8 +9,17 @@ import subprocess
 COMMANDS = {
     "ports": ["ss", "-lntup"],
     "services": ["systemctl", "list-units", "--type=service", "--state=running", "--no-pager"],
-    "service_state": ["systemctl", "show", "nginx", "nox-brain", "city-front", "tailscaled",
-                      "openvpn-server@server", "-p", "ActiveState,SubState,MainPID,NRestarts"],
+    "service_state": [
+        "systemctl",
+        "show",
+        "nginx",
+        "nox-brain",
+        "city-front",
+        "tailscaled",
+        "openvpn-server@server",
+        "-p",
+        "ActiveState,SubState,MainPID,NRestarts",
+    ],
     "ufw": ["ufw", "status", "verbose"],
     "nft": ["nft", "list", "ruleset"],
     "routes": ["ip", "route", "show", "table", "all"],
@@ -24,13 +34,17 @@ def snapshot():
     for name, command in COMMANDS.items():
         try:
             run = subprocess.run(command, capture_output=True, text=True, timeout=20)
-            result[name] = {"returncode": run.returncode,
-                            "stdout": run.stdout, "stderr": run.stderr}
+            result[name] = {
+                "returncode": run.returncode,
+                "stdout": run.stdout,
+                "stderr": run.stderr,
+            }
         except (OSError, subprocess.TimeoutExpired) as exc:
             result[name] = {"returncode": -1, "error": type(exc).__name__}
     result["nginx_hashes"] = {
         str(path): hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in Path("/etc/nginx").rglob("*") if path.is_file()
+        for path in Path("/etc/nginx").rglob("*")
+        if path.is_file()
     }
     return result
 

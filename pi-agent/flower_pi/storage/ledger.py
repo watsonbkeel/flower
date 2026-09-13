@@ -37,14 +37,19 @@ class Ledger:
         self.connection.close()
 
     def get(self, command_id):
-        row = self.connection.execute("SELECT * FROM water_ledger WHERE command_id=?", (command_id,)).fetchone()
+        row = self.connection.execute(
+            "SELECT * FROM water_ledger WHERE command_id=?", (command_id,)
+        ).fetchone()
         return dict(row) if row else None
 
     def _used(self, now):
         cutoff = timestamp(now) - 86400
-        rows = self.connection.execute("""SELECT quota_ml FROM water_ledger
+        rows = self.connection.execute(
+            """SELECT quota_ml FROM water_ledger
             WHERE COALESCE(trusted_wall_time_utc, server_issued_at_utc, recovered_at_utc) IS NULL
-               OR COALESCE(trusted_wall_time_utc, server_issued_at_utc, recovered_at_utc) > ?""", (cutoff,))
+               OR COALESCE(trusted_wall_time_utc, server_issued_at_utc, recovered_at_utc) > ?""",
+            (cutoff,),
+        )
         local = sum(row[0] for row in rows)
         cloud = self.value("cloud_quota", {})
         cloud_used = cloud.get("used", 0) if cloud.get("observed", 0) > cutoff else 0
@@ -58,7 +63,9 @@ class Ledger:
             server_issued_at_utc, recovered_at_utc)) FROM water_ledger""").fetchone()
         return datetime.fromtimestamp(row[0], timezone.utc) if row[0] is not None else None
 
-    def reserve(self, command_id, source, amount, now, boot_id, monotonic, *, limit_ml, interval_hours):
+    def reserve(
+        self, command_id, source, amount, now, boot_id, monotonic, *, limit_ml, interval_hours
+    ):
         wall = timestamp(now)
         if not math.isfinite(amount) or not 0 < amount <= 60:
             raise ValueError("INVALID_AMOUNT")
@@ -71,10 +78,12 @@ class Ledger:
                 raise ValueError("MIN_INTERVAL")
             if self._used(now) + amount > limit_ml:
                 raise ValueError("QUOTA_EXCEEDED")
-            self.connection.execute("""INSERT INTO water_ledger
+            self.connection.execute(
+                """INSERT INTO water_ledger
                 (command_id,source,state,reserved_ml,quota_ml,trusted_wall_time_utc,
                  boot_id,monotonic_started,created_at) VALUES (?,?,'reserved',?,?,?,?,?,?)""",
-                (command_id, source, amount, amount, wall, boot_id, monotonic, wall))
+                (command_id, source, amount, amount, wall, boot_id, monotonic, wall),
+            )
             self.connection.commit()
         except Exception:
             self.connection.rollback()
@@ -82,22 +91,32 @@ class Ledger:
 
     def progress(self, command_id, actual_ml):
         with self.connection:
-            self.connection.execute("UPDATE water_ledger SET actual_ml=? WHERE command_id=? AND state='reserved'",
-                                    (actual_ml, command_id))
+            self.connection.execute(
+                "UPDATE water_ledger SET actual_ml=? WHERE command_id=? AND state='reserved'",
+                (actual_ml, command_id),
+            )
 
     def provisional(self, command_id):
         with self.connection:
-            self.connection.execute("""UPDATE water_ledger SET state='provisional', quota_ml=reserved_ml
-                WHERE command_id=? AND state='reserved'""", (command_id,))
+            self.connection.execute(
+                """UPDATE water_ledger SET state='provisional', quota_ml=reserved_ml
+                WHERE command_id=? AND state='reserved'""",
+                (command_id,),
+            )
 
     def recover(self, now):
         wall = timestamp(now) if now is not None else None
         with self.connection:
-            self.connection.execute("UPDATE water_ledger SET state='provisional', quota_ml=reserved_ml WHERE state='reserved'")
+            self.connection.execute(
+                "UPDATE water_ledger SET state='provisional', quota_ml=reserved_ml WHERE state='reserved'"
+            )
             if wall is not None:
-                self.connection.execute("""UPDATE water_ledger SET recovered_at_utc=?
+                self.connection.execute(
+                    """UPDATE water_ledger SET recovered_at_utc=?
                     WHERE state='provisional' AND trusted_wall_time_utc IS NULL
-                    AND server_issued_at_utc IS NULL AND recovered_at_utc IS NULL""", (wall,))
+                    AND server_issued_at_utc IS NULL AND recovered_at_utc IS NULL""",
+                    (wall,),
+                )
 
     def finish(self, command_id, *, actual_ml, now, monotonic, verified):
         row = self.get(command_id)
@@ -107,31 +126,46 @@ class Ledger:
         if not math.isfinite(actual_ml) or not 0 <= actual_ml <= row["reserved_ml"]:
             raise ValueError("INVALID_SETTLEMENT")
         with self.connection:
-            self.connection.execute("""UPDATE water_ledger SET state='final',actual_ml=?,quota_ml=?,
-                monotonic_finished=? WHERE command_id=?""", (actual_ml, actual_ml, monotonic, command_id))
+            self.connection.execute(
+                """UPDATE water_ledger SET state='final',actual_ml=?,quota_ml=?,
+                monotonic_finished=? WHERE command_id=?""",
+                (actual_ml, actual_ml, monotonic, command_id),
+            )
 
     def reconcile_used(self, cloud_used, now):
         if not math.isfinite(cloud_used) or cloud_used < 0:
             raise ValueError("INVALID_CLOUD_QUOTA")
         local = self.used(now)
-        self.set_value("cloud_quota", {"used": max(local, cloud_used), "observed": timestamp(now)})
+        previous = self.value("cloud_quota", {})
+        wall = timestamp(now)
+        if previous.get("observed", 0) <= wall - 86400 or cloud_used >= previous.get("used", 0):
+            self.set_value("cloud_quota", {"used": cloud_used, "observed": wall})
         return max(local, cloud_used), local != cloud_used
 
     def value(self, key, default=None):
-        row = self.connection.execute("SELECT value FROM local_values WHERE key=?", (key,)).fetchone()
+        row = self.connection.execute(
+            "SELECT value FROM local_values WHERE key=?", (key,)
+        ).fetchone()
         return json.loads(row[0]) if row else default
 
     def set_value(self, key, value):
         with self.connection:
-            self.connection.execute("INSERT OR REPLACE INTO local_values VALUES (?,?)", (key, json.dumps(value)))
+            self.connection.execute(
+                "INSERT OR REPLACE INTO local_values VALUES (?,?)", (key, json.dumps(value))
+            )
 
     def enqueue(self, key, route, payload, now):
         with self.connection:
-            self.connection.execute("INSERT OR IGNORE INTO outbox VALUES (?,?,?,?)",
-                                    (key, route, json.dumps(payload), timestamp(now)))
+            self.connection.execute(
+                "INSERT OR IGNORE INTO outbox VALUES (?,?,?,?)",
+                (key, route, json.dumps(payload), timestamp(now)),
+            )
 
     def pending(self):
-        return [dict(row) for row in self.connection.execute("SELECT * FROM outbox ORDER BY created_at LIMIT 100")]
+        return [
+            dict(row)
+            for row in self.connection.execute("SELECT * FROM outbox ORDER BY created_at LIMIT 100")
+        ]
 
     def acknowledge(self, key):
         with self.connection:

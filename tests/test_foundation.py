@@ -19,18 +19,28 @@ def test_frozen_baseline():
     assert len(list(Path("docs/server-audit").glob("*.md"))) == 8
 
 
-@pytest.mark.parametrize("override", [
-    {"dev_mode": True}, {"dev_auth_bypass": True},
-    {"app_base_url": "http://flower-api.bkeel.com"},
-    {"app_base_url": "https:///missing-host"},
-    {"secret_key": ""}, {"secret_key": "change-me"},
-    {"database_url": "sqlite:///test.db"}, {"spec_version": "2.2.1"},
-])
+@pytest.mark.parametrize(
+    "override",
+    [
+        {"dev_mode": True},
+        {"dev_auth_bypass": True},
+        {"app_base_url": "http://flower-api.bkeel.com"},
+        {"app_base_url": "https:///missing-host"},
+        {"secret_key": ""},
+        {"secret_key": "change-me"},
+        {"database_url": "sqlite:///test.db"},
+        {"spec_version": "2.2.1"},
+    ],
+)
 def test_production_fails_closed(override):
-    values = dict(app_env="production", dev_mode=False, dev_auth_bypass=False,
-                  app_base_url="https://flower-api.bkeel.com",
-                  secret_key="test-only-" + "a" * 40,
-                  database_url="postgresql+psycopg://flower:test-only@postgres/flower")
+    values = dict(
+        app_env="production",
+        dev_mode=False,
+        dev_auth_bypass=False,
+        app_base_url="https://flower-api.bkeel.com",
+        secret_key="test-only-" + "a" * 40,
+        database_url="postgresql+psycopg://flower:test-only@postgres/flower",
+    )
     with pytest.raises(ValueError):
         Settings(**(values | override))
 
@@ -56,6 +66,7 @@ def test_explicit_migration_is_repeatable_and_readiness_checks_head(tmp_path):
 
 def test_compose_is_private_and_processes_do_not_migrate():
     import yaml
+
     base = yaml.safe_load(Path("docker-compose.yml").read_text())
     prod = yaml.safe_load(Path("compose.production.yml").read_text())
     assert set(base["services"]) == {"proxy", "api", "worker", "postgres"}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.270" timestamp="2026-09-13T15:44:55.150450+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_device_chain" name="test_success_cannot_lower_quota_without_matching_pulse_receipts" time="0.190"><failure message="assert 200 == 409&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fbf36533380&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyODcyOTV9.x6oaSBJ9cIS7qTga9ucl8Sn4WCrEAJ-hY8DvnCBrsAc'}, 'device_id': '8c245638-b5fb-49b8-883c-b8569390d09f', ...}
+
+    def test_success_cannot_lower_quota_without_matching_pulse_receipts(system):
+        cid = water(system).json()["id"]
+        client, headers = system["client"], system["device_headers"]
+        client.post("/api/v1/device/commands/claim", headers=headers)
+        client.post(f"/api/v1/device/commands/{cid}/started", headers=headers)
+        response = client.post(f"/api/v1/device/commands/{cid}/result", headers=headers,
+                               json={"status": "succeeded", "actual_ml": 10, "pulses": []})
+&gt;       assert response.status_code == 409
+E       assert 200 == 409
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+backend/tests/test_device_chain.py:85: AssertionError</failure></testcase></testsuite></testsuites>

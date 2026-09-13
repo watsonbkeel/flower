@@ -27,8 +27,18 @@ class DispenseCommand(BaseModel):
 
 
 class Executor:
-    def __init__(self, device_id, pump, ledger, state, calibration, clock,
-                 limit_ml=120, interval_hours=6, boot_id="unknown"):
+    def __init__(
+        self,
+        device_id,
+        pump,
+        ledger,
+        state,
+        calibration,
+        clock,
+        limit_ml=120,
+        interval_hours=6,
+        boot_id="unknown",
+    ):
         self.device_id, self.pump, self.ledger = device_id, pump, ledger
         self.state, self.calibration, self.clock = state, calibration, clock
         self.limit_ml, self.interval_hours, self.boot_id = limit_ml, interval_hours, boot_id
@@ -61,11 +71,18 @@ class Executor:
             if command.source == "local_fallback":
                 if policy is None:
                     raise ValueError("POLICY_MISSING")
-                policy_valid = policy.permits(now, soil_pct=self.state().soil_pct,
-                    last_watered=self.ledger.last_watered(), used_ml=self.ledger.used(now))
+                policy_valid = policy.permits(
+                    now,
+                    soil_pct=self.state().soil_pct,
+                    last_watered=self.ledger.last_watered(),
+                    used_ml=self.ledger.used(now),
+                )
                 if command.max_pulses != 1 or command.target_ml != policy.pulse_ml:
                     raise ValueError("POLICY_DOSE_MISMATCH")
-                limit, interval = min(limit, policy.max_24h_ml), max(interval, policy.min_interval_hours)
+                limit, interval = (
+                    min(limit, policy.max_24h_ml),
+                    max(interval, policy.min_interval_hours),
+                )
             permission = can_dispense(self.state(), command.source, policy_valid=policy_valid)
             if not permission.allowed:
                 raise ValueError(permission.reason)
@@ -84,8 +101,16 @@ class Executor:
                 doses.append((dose, seconds))
                 remaining -= dose
             started = self.clock.monotonic()
-            self.ledger.reserve(command.id, command.source, command.target_ml, now,
-                self.boot_id, started, limit_ml=limit, interval_hours=interval)
+            self.ledger.reserve(
+                command.id,
+                command.source,
+                command.target_ml,
+                now,
+                self.boot_id,
+                started,
+                limit_ml=limit,
+                interval_hours=interval,
+            )
             reserved = True
             if on_started:
                 on_started()
@@ -114,7 +139,9 @@ class Executor:
                 check()
                 if self.state().soil_pct >= command.stop_soil_pct:
                     break
-                self.watchdog.arm(min(command.max_continuous_sec, deadline - self.clock.monotonic()))
+                self.watchdog.arm(
+                    min(command.max_continuous_sec, deadline - self.clock.monotonic())
+                )
                 try:
                     self.pump._energize()
                     wait(seconds)
@@ -122,20 +149,36 @@ class Executor:
                     self.watchdog.disarm()
                 actual += dose
                 self.ledger.progress(command.id, actual)
-                pulses.append({"pulse": len(pulses) + 1, "estimated_ml": dose,
-                               "finished_at": self.clock.utcnow().isoformat()})
+                pulses.append(
+                    {
+                        "pulse": len(pulses) + 1,
+                        "estimated_ml": dose,
+                        "finished_at": self.clock.utcnow().isoformat(),
+                    }
+                )
                 if on_progress:
                     on_progress(pulses)
                 wait(command.afterdrip_settle_sec + command.absorb_wait_sec)
-            self.ledger.finish(command.id, actual_ml=actual, now=self.clock.utcnow(),
-                               monotonic=self.clock.monotonic(), verified=True)
+            self.ledger.finish(
+                command.id,
+                actual_ml=actual,
+                now=self.clock.utcnow(),
+                monotonic=self.clock.monotonic(),
+                verified=True,
+            )
             return {"status": "succeeded", "actual_ml": actual, "pulses": pulses}
         except Exception as exc:
             if reserved:
                 self.ledger.provisional(command.id)
-            return {"status": "timed_out" if isinstance(exc, TimeoutError) else "failed",
-                    "reason": str(exc) if isinstance(exc, (ValueError, TimeoutError)) else "EXECUTION_FAULT",
-                    "actual_ml": actual, "pulses": pulses, "provisional": reserved}
+            return {
+                "status": "timed_out" if isinstance(exc, TimeoutError) else "failed",
+                "reason": str(exc)
+                if isinstance(exc, (ValueError, TimeoutError))
+                else "EXECUTION_FAULT",
+                "actual_ml": actual,
+                "pulses": pulses,
+                "provisional": reserved,
+            }
         finally:
             self.watchdog.disarm()
             self.lock.release()

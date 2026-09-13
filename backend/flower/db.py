@@ -15,8 +15,11 @@ def make_engine(url):
     if url.startswith("sqlite"):
         options["connect_args"] = {"check_same_thread": False, "timeout": 30}
     else:
-        options.update(pool_size=5, max_overflow=2,
-                       connect_args={"connect_timeout": 3})
+        options.update(
+            pool_size=5,
+            max_overflow=2,
+            connect_args={"connect_timeout": 3, "options": "-c timezone=UTC"},
+        )
     return create_engine(url, **options)
 
 
@@ -39,6 +42,7 @@ def ready(engine):
         if actual != expected:
             return False
         from flower import models  # Register the full local schema before inspection.
+
         inspector = inspect(conn)
         for table in models.Base.metadata.sorted_tables:
             if not inspector.has_table(table.name):

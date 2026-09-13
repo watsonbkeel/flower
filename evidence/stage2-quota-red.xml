@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.175" timestamp="2026-09-13T15:40:34.961160+08:00" hostname="VM-0-13-debian"><testcase classname="pi-agent.tests.test_safety" name="test_cloud_quota_observation_cannot_refresh_an_old_high_value_forever" time="0.004"><failure message="assert 90 == 0&#10; +  where 90 = used((datetime.datetime(2026, 9, 13, 0, 0, tzinfo=datetime.timezone.utc) + datetime.timedelta(days=1, seconds=3600)))&#10; +    where used = &lt;flower_pi.storage.ledger.Ledger object at 0x7fbba93a7cb0&gt;.used&#10; +    and   datetime.timedelta(days=1, seconds=3600) = timedelta(hours=25)">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_cloud_quota_observation_c0')
+
+    def test_cloud_quota_observation_cannot_refresh_an_old_high_value_forever(tmp_path):
+        ledger = Ledger(tmp_path / "ledger.db")
+        ledger.reconcile_used(90, NOW)
+        for hour in range(1, 26):
+            ledger.reconcile_used(0, NOW + timedelta(hours=hour))
+&gt;       assert ledger.used(NOW + timedelta(hours=25)) == 0
+E       assert 90 == 0
+E        +  where 90 = used((datetime.datetime(2026, 9, 13, 0, 0, tzinfo=datetime.timezone.utc) + datetime.timedelta(days=1, seconds=3600)))
+E        +    where used = &lt;flower_pi.storage.ledger.Ledger object at 0x7fbba93a7cb0&gt;.used
+E        +    and   datetime.timedelta(days=1, seconds=3600) = timedelta(hours=25)
+
+pi-agent/tests/test_safety.py:141: AssertionError</failure></testcase></testsuite></testsuites>

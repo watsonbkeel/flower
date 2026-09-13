@@ -9,9 +9,11 @@ class Watchdog:
 
     def arm(self, seconds):
         self.tripped.clear()
+
         def trip():
             self.tripped.set()
             self.pump.off()
+
         self.timer = threading.Timer(seconds, trip)
         self.timer.daemon = True
         self.timer.start()

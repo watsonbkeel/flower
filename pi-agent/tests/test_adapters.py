@@ -31,10 +31,13 @@ def test_air_fallback_and_staleness():
     class Provider:
         def read(self):
             return AirReading(status="BINDKEY_REQUIRED")
+
     class Wired:
         def read(self):
-            return AirReading(status="READY", temperature_c=23, humidity_pct=50,
-                              observed_at=NOW, provider="sht30")
+            return AirReading(
+                status="READY", temperature_c=23, humidity_pct=50, observed_at=NOW, provider="sht30"
+            )
+
     selector = AirProviderSelector(Provider(), Wired())
     assert selector.read(NOW).provider == "sht30"
     assert selector.read(NOW).status == "READY"
@@ -44,6 +47,7 @@ def test_optional_sensor_failure_is_contained():
     class Broken:
         def read(self):
             raise OSError("injected BLE fault")
+
     assert AirProviderSelector(Broken()).read(NOW).status == "STALE"
 
 

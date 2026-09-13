@@ -9,7 +9,10 @@ class WaterLevel:
         self.last_sample = None
 
     def update(self, raw_water_ok, monotonic):
-        if self.last_sample is not None and monotonic - self.last_sample < self.sample_seconds - 1e-8:
+        if (
+            self.last_sample is not None
+            and monotonic - self.last_sample < self.sample_seconds - 1e-8
+        ):
             return self.ok
         self.last_sample = monotonic
         if raw_water_ok is not True:
@@ -29,6 +32,7 @@ class WaterLevel:
 class P451:
     def __init__(self, pin=27):
         from gpiozero import DigitalInputDevice
+
         self.device = DigitalInputDevice(pin, pull_up=True)
 
     def read(self):

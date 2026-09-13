@@ -37,6 +37,7 @@ class Calibration(BaseModel):
 
 def validate_measurements(flow_volumes, afterdrip, min_run_sec, adc_dry, adc_wet, depth, now):
     import math
+
     if len(flow_volumes) != 3 or len(afterdrip) != 3:
         raise ValueError("three flow and three afterdrip measurements required")
     if any(not math.isfinite(v) or v < 0 for v in flow_volumes + afterdrip):
@@ -44,6 +45,13 @@ def validate_measurements(flow_volumes, afterdrip, min_run_sec, adc_dry, adc_wet
     average = statistics.mean(flow_volumes)
     if average <= 0 or max(flow_volumes) - min(flow_volumes) > average * 0.15:
         raise ValueError("flow range exceeds 15 percent")
-    return Calibration(flow_ml_sec=average / 10, afterdrip_mean_ml=statistics.mean(afterdrip),
-                       afterdrip_max_ml=max(afterdrip), min_run_sec=min_run_sec,
-                       adc_dry=adc_dry, adc_wet=adc_wet, insert_depth_mark=depth, calibrated_at=now)
+    return Calibration(
+        flow_ml_sec=average / 10,
+        afterdrip_mean_ml=statistics.mean(afterdrip),
+        afterdrip_max_ml=max(afterdrip),
+        min_run_sec=min_run_sec,
+        adc_dry=adc_dry,
+        adc_wet=adc_wet,
+        insert_depth_mark=depth,
+        calibrated_at=now,
+    )

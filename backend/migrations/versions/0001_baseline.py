@@ -1,4 +1,5 @@
 """v2.2.2 baseline; explicit migration only."""
+
 from alembic import op
 import sqlalchemy as sa
 

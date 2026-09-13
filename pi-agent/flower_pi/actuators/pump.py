@@ -17,6 +17,7 @@ class MockPump:
 class GPIOPump:
     def __init__(self, pin=17):
         from gpiozero import OutputDevice
+
         self._output = OutputDevice(pin, active_high=True, initial_value=False)
 
     @property
