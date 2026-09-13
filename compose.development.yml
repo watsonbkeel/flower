@@ -1,0 +1,14 @@
+name: flower-dev
+services:
+  proxy:
+    ports: ["127.0.0.1:18082:8080"]
+  api:
+    build: ./backend
+    environment: &dev-env
+      APP_ENV: development
+      APP_BASE_URL: http://127.0.0.1:18082
+      DEV_MODE: "true"
+      DEV_AUTH_BYPASS: "false"
+  worker:
+    build: ./backend
+    environment: *dev-env

@@ -2,7 +2,7 @@
 
 - 当前规格：v2.2.2 Server-Integrated
 - 当前 Stage：0
-- 实现状态：NOT_STARTED
+- 实现状态：IN_PROGRESS
 - 架构审计：COMPLETE（只读，2026-09-13）
 - 最近更新：2026-09-13
 
@@ -10,16 +10,22 @@
 
 - [x] 服务器/aibot 只读审计 8 份报告
 - [x] v2.2.2 Server-Integrated 基线生成
-- [ ] 代码实现尚未开始
+- [x] Stage 0：基线校验、独立分支、后端配置/健康端点、显式迁移、Compose骨架及preflight脚本
 
 ## 当前进行
 
-- [ ] 将本包完整部署到 `/root/flower` 并校验规格/GOAL/Skills
-- [ ] 初始化独立 Git 仓库/分支或 worktree
+- [x] 规格 SHA-256、GOAL、七个 Skills、八份审计报告校验
+- [x] 独立分支 `feat/flower-v2.2.2`，起点 `08534ae`
 
 ## 下一步
 
-- [ ] 执行 Stage 0
+- [ ] Stage 1：Pi安全核心和故障注入测试
+
+## 开发证据
+
+- `evidence/stage0-red.xml`：实现前预期失败（模块尚不存在）。
+- `evidence/stage0-green.xml`：开发自动化验证；SQLite仅用于本阶段迁移/探针测试，不代表PostgreSQL或Compose运行通过。
+- 未重复全面服务器审计，未执行preflight或任何生产修改。
 
 ## 已知共享宿主机事实
 

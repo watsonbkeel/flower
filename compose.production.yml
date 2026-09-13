@@ -1,0 +1,33 @@
+name: flower-prod
+services:
+  proxy:
+    ports: ["127.0.0.1:18080:8080"]
+    cpus: 0.05
+    mem_limit: 64m
+    restart: unless-stopped
+    logging: &bounded-logs
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+  api:
+    cpus: 0.25
+    mem_limit: 384m
+    restart: unless-stopped
+    logging: *bounded-logs
+    volumes: [/srv/flower/shared/uploads:/data/uploads]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+  worker:
+    cpus: 0.40
+    mem_limit: 768m
+    restart: unless-stopped
+    logging: *bounded-logs
+    volumes: [/srv/flower/shared/uploads:/data/uploads]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+  postgres:
+    cpus: 0.30
+    mem_limit: 512m
+    restart: unless-stopped
+    logging: *bounded-logs
+    volumes: [/srv/flower/shared/postgres:/var/lib/postgresql/data]
+    command: [postgres, -c, max_connections=30, -c, shared_buffers=128MB]
