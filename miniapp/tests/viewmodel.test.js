@@ -48,3 +48,21 @@ test('weather preserves zero readings and distinguishes absent, stale and mismat
   }
   assert.equal(view.weatherView({...weather, temperature_c: null}, 'mock', now).temperatureText, '--');
 });
+
+test('care card validity takes precedence over previous confirmation', () => {
+  const now = Date.parse('2026-09-13T08:00:00Z');
+  const profile = {confirmed: true, valid_until: '2026-09-13T09:00:00Z'};
+  assert.equal(view.careProfileView(profile, now).statusText, '养护卡已确认');
+  assert.equal(view.careProfileView(profile, now).canConfirm, false);
+  assert.equal(view.careProfileView({...profile, confirmed: false}, now).canConfirm, true);
+  for (const valid_until of ['2026-09-13T08:00:00Z', '2026-09-12T08:00:00Z']) {
+    const result = view.careProfileView({...profile, valid_until}, now);
+    assert.equal(result.canConfirm, false);
+    assert.equal(result.statusText, '养护卡已过期，请重新生成');
+  }
+  for (const valid_until of [null, undefined, 'bad']) {
+    assert.equal(view.careProfileView({...profile, valid_until}, now).canConfirm, false);
+    assert.equal(view.careProfileView({...profile, valid_until}, now).statusText, '养护卡有效期异常，请重新生成');
+  }
+  assert.equal(view.careProfileView(null, now).statusText, '养护卡尚未生成');
+});

@@ -25,6 +25,16 @@
       && !(device.fault_codes || []).some(code => !['BLE_STALE', 'CAMERA_UNAVAILABLE'].includes(code)));
   }
   function faultLabel(code) { return faults[code] || code || '暂无异常'; }
+  function careProfileView(profile, now = Date.now()) {
+    const expiry = Date.parse(profile && profile.valid_until);
+    let statusText = '养护卡待确认';
+    if (!profile) statusText = '养护卡尚未生成';
+    else if (!Number.isFinite(expiry)) statusText = '养护卡有效期异常，请重新生成';
+    else if (expiry <= now) statusText = '养护卡已过期，请重新生成';
+    else if (profile.confirmed) statusText = '养护卡已确认';
+    return {statusText, canConfirm: statusText === '养护卡待确认',
+      validUntilText: Number.isFinite(expiry) ? new Date(expiry).toLocaleString('zh-CN', {hour12: false}) : ''};
+  }
   function weatherView(weather, expectedSource, now = Date.now()) {
     const observed = Date.parse(weather && weather.observed_at);
     const expires = Date.parse(weather && weather.valid_until);
@@ -59,7 +69,7 @@
       commandText: commandLabel(data.command && data.command.status, data.command && data.command.action),
       soilText: device && Number.isFinite(device.soil_moisture) ? device.soil_moisture.toFixed(0) : '--'};
   }
-  const api = {sourceNames, commandLabel, coverageLabel, canWater, faultLabel, weatherView, chartSegments, statusView};
+  const api = {sourceNames, commandLabel, coverageLabel, canWater, faultLabel, careProfileView, weatherView, chartSegments, statusView};
   if (typeof module !== 'undefined') module.exports = api;
   else root.FlowerView = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

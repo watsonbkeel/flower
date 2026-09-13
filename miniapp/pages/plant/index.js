@@ -10,6 +10,7 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, retakeRecom
       const status = await api.request(`/plants/${pid}/status`);
       const recognition = await api.request(`/plants/${pid}/recognition`);
       this.setData({plant: status.plant, profile: status.care_profile,
+        careValidity: view.careProfileView(status.care_profile),
         weather: view.weatherView(status.care_profile && status.care_profile.profile.weather, status.device && status.device.source_type),
         candidates: recognition.result ? recognition.result.candidates : [], retakeRecommended: !!recognition.retake_recommended});
       if (this.recognitionImageId !== recognition.image_id) {
