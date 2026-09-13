@@ -96,18 +96,34 @@ def digest(value):
 
 
 def compile_policy(
-    *, profile, profile_version, policy_version, now, timezone_name, windows, pulse_ml, max_24h_ml
+    *,
+    profile,
+    profile_version,
+    policy_version,
+    now,
+    timezone_name,
+    windows,
+    pulse_ml,
+    max_24h_ml,
+    valid_until=None,
 ):
     ZoneInfo(timezone_name)
     validate_windows(windows)
     if not windows or now.tzinfo is None:
         raise ValueError("policy timezone and windows required")
+    until = (
+        min(now + timedelta(days=7), valid_until)
+        if valid_until is not None
+        else now + timedelta(days=7)
+    )
+    if until <= now:
+        raise ValueError("policy validity required")
     pulse = float(min(pulse_ml, 10))
     policy = {
         "policy_version": policy_version,
         "profile_version": profile_version,
         "generated_at": TypeAdapter(datetime).dump_python(now, mode="json"),
-        "valid_until": TypeAdapter(datetime).dump_python(now + timedelta(days=7), mode="json"),
+        "valid_until": TypeAdapter(datetime).dump_python(until, mode="json"),
         "trigger_soil_below_pct": float(max(0, profile["soil_target_min_pct"] - 12)),
         "min_interval_hours": 12.0,
         "pulse_ml": pulse,

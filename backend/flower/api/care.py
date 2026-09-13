@@ -9,14 +9,13 @@ from flower.models import (
     CareProfile,
     Device,
     Memory,
-    Plant,
     PlantImage,
     Command,
     WateringSession,
     utcnow,
 )
 from flower.schemas import ProfileConfirmation, Toggle, MemoryInput, MemoryEnabled, serialize
-from flower.services.care import issue_fallback
+from flower.services.care import issue_fallback, refresh_fallback_for_plant
 from flower.services.commands import safety_context
 from flower.services.jobs import enqueue_job
 from flower.services.knowledge import MemoryRule
@@ -159,10 +158,16 @@ def add_memory(data: MemoryInput, user=Depends(require_user), db=Depends(get_db)
 
 @router.put("/memories/{memory_id}")
 def update_memory(
-    memory_id: UUID, data: MemoryInput, user=Depends(require_user), db=Depends(get_db)
+    memory_id: UUID,
+    data: MemoryInput,
+    request: Request,
+    user=Depends(require_user),
+    db=Depends(get_db),
 ):
     memory = owned_memory(db, memory_id, user.id)
+    previous_plant_id = memory.plant_id if memory.rule_enabled else None
     apply_memory(db, memory, data, user)
+    refresh_fallback_for_plant(db, request.app.state.settings, previous_plant_id)
     return serialize(memory)
 
 
@@ -205,14 +210,5 @@ def enable(
     memory.rule_confirmed = memory.rule_confirmed or data.confirmed
     memory.rule_enabled = data.enabled
     db.flush()
-    if memory.plant_id:
-        plant = db.get(Plant, memory.plant_id)
-        profile = db.scalar(
-            select(CareProfile)
-            .where(CareProfile.plant_id == plant.id, CareProfile.confirmed.is_(True))
-            .order_by(CareProfile.version.desc())
-            .limit(1)
-        )
-        if profile:
-            issue_fallback(db, request.app.state.settings, plant, profile)
+    refresh_fallback_for_plant(db, request.app.state.settings, memory.plant_id)
     return serialize(memory)

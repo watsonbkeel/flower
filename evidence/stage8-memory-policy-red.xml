@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="1.428" timestamp="2026-09-13T18:13:17.466641+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_memory_policy_lifecycle" name="test_removing_confirmed_memory_rule_recompiles_fallback[edit]" time="0.536"><failure message="assert 1 &gt; 1">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f832b7cdfd0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTYxOTd9.JXKhVWUIBZPCzr3x_cmd5zAQnvLu0bZMH_ZGA55Jqi4'}, 'device_id': '8d12ef6d-6942-43ed-bea6-43dbf4ffd90d', ...}
+change = 'edit'
+
+    @pytest.mark.parametrize("change", ["edit", "detach", "restructure"])
+    def test_removing_confirmed_memory_rule_recompiles_fallback(system, change):
+        client, headers = system["client"], system["user_headers"]
+        mid = enabled_memory(system)
+        before = policy(system)
+        assert before["pulse_ml"] == 5
+        if change == "restructure":
+            client.post(f"/api/v1/memories/{mid}/structure-rule", headers=headers)
+            assert Worker(system["app"].state.sessions, system["settings"]).run_once()
+        else:
+            assert client.put(f"/api/v1/memories/{mid}", headers=headers, json={
+                "title": "Edited", "plant_id": None if change == "detach" else system["plant_id"],
+                "original_experience": "New unconfirmed experience"
+            }).status_code == 200
+        after = policy(system)
+&gt;       assert after["policy_version"] &gt; before["policy_version"]
+E       assert 1 &gt; 1
+
+backend/tests/test_memory_policy_lifecycle.py:43: AssertionError</failure></testcase><testcase classname="backend.tests.test_memory_policy_lifecycle" name="test_removing_confirmed_memory_rule_recompiles_fallback[detach]" time="0.195"><failure message="assert 1 &gt; 1">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f832a716350&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTYxOTh9.UHV3FHOR7OCepSHedBbB63_JM38Ve03HgYjbPSv7l8M'}, 'device_id': '44a19786-6cfd-423f-a203-b6a28d25e301', ...}
+change = 'detach'
+
+    @pytest.mark.parametrize("change", ["edit", "detach", "restructure"])
+    def test_removing_confirmed_memory_rule_recompiles_fallback(system, change):
+        client, headers = system["client"], system["user_headers"]
+        mid = enabled_memory(system)
+        before = policy(system)
+        assert before["pulse_ml"] == 5
+        if change == "restructure":
+            client.post(f"/api/v1/memories/{mid}/structure-rule", headers=headers)
+            assert Worker(system["app"].state.sessions, system["settings"]).run_once()
+        else:
+            assert client.put(f"/api/v1/memories/{mid}", headers=headers, json={
+                "title": "Edited", "plant_id": None if change == "detach" else system["plant_id"],
+                "original_experience": "New unconfirmed experience"
+            }).status_code == 200
+        after = policy(system)
+&gt;       assert after["policy_version"] &gt; before["policy_version"]
+E       assert 1 &gt; 1
+
+backend/tests/test_memory_policy_lifecycle.py:43: AssertionError</failure></testcase><testcase classname="backend.tests.test_memory_policy_lifecycle" name="test_removing_confirmed_memory_rule_recompiles_fallback[restructure]" time="0.207"><failure message="assert 1 &gt; 1">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f832ab6c550&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTYxOTh9.HEs_VR0gahUJz46emtmdoEikcj0Ct2zMNFrWN-5Yvw0'}, 'device_id': '202605b2-bab6-43cf-961c-4f13480977b1', ...}
+change = 'restructure'
+
+    @pytest.mark.parametrize("change", ["edit", "detach", "restructure"])
+    def test_removing_confirmed_memory_rule_recompiles_fallback(system, change):
+        client, headers = system["client"], system["user_headers"]
+        mid = enabled_memory(system)
+        before = policy(system)
+        assert before["pulse_ml"] == 5
+        if change == "restructure":
+            client.post(f"/api/v1/memories/{mid}/structure-rule", headers=headers)
+            assert Worker(system["app"].state.sessions, system["settings"]).run_once()
+        else:
+            assert client.put(f"/api/v1/memories/{mid}", headers=headers, json={
+                "title": "Edited", "plant_id": None if change == "detach" else system["plant_id"],
+                "original_experience": "New unconfirmed experience"
+            }).status_code == 200
+        after = policy(system)
+&gt;       assert after["policy_version"] &gt; before["policy_version"]
+E       assert 1 &gt; 1
+
+backend/tests/test_memory_policy_lifecycle.py:43: AssertionError</failure></testcase><testcase classname="backend.tests.test_memory_policy_lifecycle" name="test_fallback_cannot_outlive_its_confirmed_care_profile" time="0.178"><failure message="AssertionError: assert datetime.datetime(2026, 9, 20, 10, 13, 18, 673339, tzinfo=datetime.timezone.utc) &lt;= datetime.datetime(2026, 9, 13, 10, 43, 18, 598308, tzinfo=datetime.timezone.utc)&#10; +  where datetime.datetime(2026, 9, 20, 10, 13, 18, 673339, tzinfo=datetime.timezone.utc) = &lt;built-in method fromisoformat of type object at 0xa23780&gt;('2026-09-20T10:13:18.673339Z')&#10; +    where &lt;built-in method fromisoformat of type object at 0xa23780&gt; = datetime.fromisoformat">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f8328b96e90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTYxOTh9.NAAk0IZBHrYSCw6uvyTqZy_HJWSXm7epgd_3XBAPcwI'}, 'device_id': 'd034ad77-4996-4caf-856a-836709e6db2f', ...}
+
+    def test_fallback_cannot_outlive_its_confirmed_care_profile(system):
+        until = utcnow() + timedelta(minutes=30)
+        with system["app"].state.sessions.begin() as db:
+            db.scalar(select(CareProfile)).valid_until = until
+        enabled_memory(system)
+&gt;       assert datetime.fromisoformat(policy(system)["valid_until"]) &lt;= until
+E       AssertionError: assert datetime.datetime(2026, 9, 20, 10, 13, 18, 673339, tzinfo=datetime.timezone.utc) &lt;= datetime.datetime(2026, 9, 13, 10, 43, 18, 598308, tzinfo=datetime.timezone.utc)
+E        +  where datetime.datetime(2026, 9, 20, 10, 13, 18, 673339, tzinfo=datetime.timezone.utc) = &lt;built-in method fromisoformat of type object at 0xa23780&gt;('2026-09-20T10:13:18.673339Z')
+E        +    where &lt;built-in method fromisoformat of type object at 0xa23780&gt; = datetime.fromisoformat
+
+backend/tests/test_memory_policy_lifecycle.py:53: AssertionError</failure></testcase><testcase classname="backend.tests.test_memory_policy_lifecycle" name="test_memory_change_with_expired_care_revokes_instead_of_issuing_policy" time="0.202"><failure message="AssertionError: assert 200 == 404&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code&#10; +    where &lt;Response [200 OK]&gt; = get('/api/v1/device/fallback-policy', headers={'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwZTk0YWJjZC1jNjkwLTRkOTQtYWM3NC05N2NhYWY3MGM...iLCJhdWQiOiJmbG93ZXItYXBpIiwiaWF0IjoxNzg5Mjk0Mzk4LCJleHAiOjE3ODkyOTYxOTh9.9kIodNfecJmdmZNeNOyazadC9Rhn7856DI1bP1V959M'})&#10; +      where get = &lt;starlette.testclient.TestClient object at 0x7f832ab8d810&gt;.get">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f832890ead0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTYxOTh9.9kIodNfecJmdmZNeNOyazadC9Rhn7856DI1bP1V959M'}, 'device_id': '0e94abcd-c690-4d94-ac74-97caaf70c61a', ...}
+
+    def test_memory_change_with_expired_care_revokes_instead_of_issuing_policy(system):
+        mid = enabled_memory(system)
+        with system["app"].state.sessions.begin() as db:
+            db.scalar(select(CareProfile)).valid_until = utcnow() - timedelta(seconds=1)
+        response = system["client"].put(f"/api/v1/memories/{mid}/enabled", headers=system["user_headers"],
+                                        json={"enabled": False, "confirmed": False})
+        assert response.status_code == 200
+&gt;       assert system["client"].get("/api/v1/device/fallback-policy", headers=system["device_headers"]).status_code == 404
+E       AssertionError: assert 200 == 404
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+E        +    where &lt;Response [200 OK]&gt; = get('/api/v1/device/fallback-policy', headers={'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwZTk0YWJjZC1jNjkwLTRkOTQtYWM3NC05N2NhYWY3MGM...iLCJhdWQiOiJmbG93ZXItYXBpIiwiaWF0IjoxNzg5Mjk0Mzk4LCJleHAiOjE3ODkyOTYxOTh9.9kIodNfecJmdmZNeNOyazadC9Rhn7856DI1bP1V959M'})
+E        +      where get = &lt;starlette.testclient.TestClient object at 0x7f832ab8d810&gt;.get
+
+backend/tests/test_memory_policy_lifecycle.py:63: AssertionError</failure></testcase></testsuite></testsuites>

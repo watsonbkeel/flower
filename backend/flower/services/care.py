@@ -4,7 +4,17 @@ from datetime import timedelta
 from sqlalchemy import select, func
 
 from flower.errors import DomainError
-from flower.models import Device, FallbackPolicy, Memory, Event, Command, WateringSession, utcnow
+from flower.models import (
+    Device,
+    Plant,
+    CareProfile,
+    FallbackPolicy,
+    Memory,
+    Event,
+    Command,
+    WateringSession,
+    utcnow,
+)
 from flower.services.commands import safety_context, quota_used, create_command
 from flower.services.decision import DecisionInput, DecisionConfig, decide
 from flower.services.knowledge import Knowledge, MemoryRule, compile_policy, Weather, CareSource
@@ -56,6 +66,9 @@ def profile_windows(profile):
 
 def issue_fallback(db, settings, plant, profile):
     db.refresh(db.get(Device, plant.device_id), with_for_update=True)
+    now = utcnow()
+    if not plant.recognition_confirmed or not profile.confirmed or profile.valid_until <= now:
+        raise DomainError("PROFILE_STALE")
     version = (
         db.scalar(
             select(func.max(FallbackPolicy.policy_version)).where(
@@ -64,7 +77,6 @@ def issue_fallback(db, settings, plant, profile):
         )
         or 0
     ) + 1
-    now = utcnow()
     normal = {"small": 10, "medium": 20, "large": 30}[plant.pot_size]
     windows = profile_windows(profile.profile)
     effective = dict(profile.profile)
@@ -96,7 +108,10 @@ def issue_fallback(db, settings, plant, profile):
         windows=windows,
         pulse_ml=dose,
         max_24h_ml=settings.pump_max_24h_ml,
+        valid_until=profile.valid_until,
     )
+    for previous in db.scalars(select(FallbackPolicy).where(FallbackPolicy.plant_id == plant.id)):
+        previous.valid_until = min(previous.valid_until, now)
     policy = FallbackPolicy(
         device_id=plant.device_id,
         plant_id=plant.id,
@@ -105,11 +120,31 @@ def issue_fallback(db, settings, plant, profile):
         policy=compiled["policy"],
         policy_hash=compiled["policy_hash"],
         valid_from=now,
-        valid_until=now + timedelta(days=7),
+        valid_until=min(now + timedelta(days=7), profile.valid_until),
     )
     db.add(policy)
     db.flush()
     return policy
+
+
+def refresh_fallback_for_plant(db, settings, plant_id):
+    if not plant_id:
+        return
+    db.flush()
+    plant = db.get(Plant, plant_id)
+    db.refresh(db.get(Device, plant.device_id), with_for_update=True)
+    db.refresh(plant, with_for_update=True)
+    profile = db.scalar(
+        select(CareProfile)
+        .where(CareProfile.plant_id == plant_id, CareProfile.confirmed.is_(True))
+        .order_by(CareProfile.version.desc())
+        .limit(1)
+    )
+    now = utcnow()
+    if profile and profile.valid_until > now and plant.recognition_confirmed:
+        return issue_fallback(db, settings, plant, profile)
+    for previous in db.scalars(select(FallbackPolicy).where(FallbackPolicy.plant_id == plant_id)):
+        previous.valid_until = min(previous.valid_until, now)
 
 
 def evaluate_plant(db, settings, plant, *, create=True):

@@ -31,7 +31,7 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 
 | 命令/范围 | 结果 | 证据 |
 |---|---|---|
-| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-species-postgres.xml` | PASS，173项 | [PostgreSQL回归](evidence/stage8-species-postgres.xml) |
+| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-memory-policy-postgres.xml` | PASS，178项 | [PostgreSQL回归](evidence/stage8-memory-policy-postgres.xml) |
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
 | `npm --prefix miniapp test` | PASS，9项 | [Node执行记录](evidence/stage8-job-retry-node-green.tap) |
@@ -39,6 +39,7 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 | 浏览器pending到succeeded、养护确认、记忆规则、自动开关 | PASS，Mock | [工作流](evidence/stage8-browser-workflow.json) |
 | 天气零值/过期/缺失、独立来源标签、刷新保留输入，桌面/手机 | PASS，Mock | [天气UI](evidence/stage8-weather-browser.json)、[复核说明](evidence/stage8-weather-ui.md) |
 | 慢任务失败后重新操作、同键重放、并发入队、浏览器重试 | PASS，Mock/独立PG/SQLite | [任务复核](evidence/stage8-job-retry.md) |
+| 品种变更与记忆规则撤销后的策略一致性 | PASS，Mock/独立PG | [品种](evidence/stage8-species.md)、[记忆策略](evidence/stage8-memory-policy.md) |
 | DB+uploads+manifest独立恢复、校验和与保留策略 | PASS，真实独立PG | [恢复测试](tests/test_delivery.py)、[Stage 7](evidence/stage7-postgres.xml) |
 | 后端/Pi依赖审计 | PASS，无已知漏洞 | [backend](evidence/backend-dependency-audit.json)、[Pi](evidence/pi-dependency-audit.json) |
 | Ruff及`git diff --check` | PASS | [Stage 8说明](evidence/stage8.md) |
@@ -147,6 +148,8 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 养护研究与记忆整理以每次用户操作的请求键去重，不再被资源更新时间绑定到旧的失败job。相同请求键重放返回原job；新操作创建新job并保留失败历史。通用作业入队使用数据库原子冲突处理，8个并发同键请求只写入一条job。重新生成养护卡仍产生待确认的新版本，不自动替换已确认知识。
 
 品种重新确认时，旧养护卡和离线策略立即在云端失效，旧卡不能通过再次确认恢复。品种确认、养护卡激活及自动模式切换按设备、植物的统一顺序加锁，与命令创建串行化。并发确认和品种修改、研究期间品种变化的故障注入已通过；Pi缓存撤销仍需设备下一次同步。
+
+编辑、解除植物关联或重新整理已启用的家庭经验时，按当前已确认规则重编译原植物的fallback策略；没有有效养护卡则撤销策略。每次发新版本同时停用旧版本，避免新版本到期后重新下发旧策略。策略JSON和云端有效期均受养护卡剩余有效期与7天上限约束，哈希按最终期限计算。
 
 小时聚合按设备、植物、UTC小时和来源隔离；仅完整小时入库。清理前复核样本数、覆盖时间、平均/极值和水位比，30天raw/365天hourly下限受配置约束。晚到已清理小时的数据保留待核验，不覆盖旧聚合。被植物/记忆引用的图片长期保留。
 

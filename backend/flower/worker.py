@@ -169,8 +169,12 @@ class Worker:
                 memory = db.get(Memory, job.target_id)
                 if memory.original_experience != content:
                     raise ValueError("MEMORY_CHANGED")
+                previous_plant_id = memory.plant_id if memory.rule_enabled else None
                 memory.structured_rule = result
                 memory.rule_confirmed, memory.rule_enabled = False, False
+                from flower.services.care import refresh_fallback_for_plant
+
+                refresh_fallback_for_plant(db, self.settings, previous_plant_id)
             return complete_job(db, job.id, claim["locked_by"], claim["attempt"], result)
 
     def run_once(self, isolated=False):
