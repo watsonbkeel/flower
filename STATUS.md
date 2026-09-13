@@ -34,6 +34,7 @@
 - [x] 重拍状态复核：识别只读取最新拍摄执行范围的图片，拍照/作业等待与失败不回退旧候选，客户端局部轮询；209项PostgreSQL、13项Node测试通过
 - [x] 品种主图绑定复核：客户端提交识别图片ID，后端验证归属并锁定保留，清理跳过确认中的照片；215项PostgreSQL、13项Node及桌面/手机提交验证通过
 - [x] 发布顺序复核：补齐deploy.sh，等待PG健康再迁移，等待API/Worker健康后继续；220项PostgreSQL回归通过，Compose行为仅模拟验证
+- [x] 离线数据包复核：独立JSON提供现有Mock识别/知识/天气/记忆/通知数据，Provider直接加载；222项PostgreSQL回归通过，21.2交付文件清单已核对
 - [x] 最终报告及验收矩阵：`FINAL_IMPLEMENTATION_REPORT.md`
 
 ## 当前进行

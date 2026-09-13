@@ -1,0 +1,64 @@
+{
+  "spec_version": "2.2.2",
+  "source_type": "mock",
+  "description": "Synthetic offline demonstration knowledge; not live identification, research or weather.",
+  "recognition": {
+    "candidates": [
+      {"common_name": "茉莉", "scientific_name": "Jasminum sambac", "confidence": 0.82, "notes": ""},
+      {"common_name": "栀子", "scientific_name": "Gardenia jasminoides", "confidence": 0.12, "notes": ""},
+      {"common_name": "山茶", "scientific_name": "Camellia japonica", "confidence": 0.06, "notes": ""}
+    ],
+    "provider": "mock",
+    "input_quality": "good",
+    "source_type": "mock"
+  },
+  "sources": [
+    {
+      "id": "rhs",
+      "url": "https://www.rhs.org.uk/plants/jasmine/growing-guide",
+      "title": "RHS Jasmine growing guide",
+      "summary": "Mock cached horticultural reference; confirm locally.",
+      "category": "horticultural",
+      "confidence": 0.8,
+      "source_type": "mock"
+    },
+    {
+      "id": "kew",
+      "url": "https://powo.science.kew.org/",
+      "title": "Kew Plants of the World Online",
+      "summary": "Mock cached horticultural reference; confirm locally.",
+      "category": "horticultural",
+      "confidence": 0.8,
+      "source_type": "mock"
+    }
+  ],
+  "knowledge": {
+    "preferred_temperature_c": {"min": 18, "max": 30},
+    "soil_preference": "slightly_dry_between_watering",
+    "soil_target_min_pct": 40,
+    "soil_target_max_pct": 65,
+    "watering_windows": ["early_morning", "early_evening"],
+    "rain_sensitive": true,
+    "drought_tolerance": "low",
+    "waterlogging_tolerance": "low",
+    "notes": [],
+    "source_ids": ["rhs", "kew"],
+    "confidence": 0.8,
+    "needs_review": false
+  },
+  "weather": {
+    "temperature_c": 25,
+    "rain_next_12h_mm": 0,
+    "provider": "mock",
+    "source_type": "mock"
+  },
+  "memory_rule": {
+    "preferred_windows": [["18:00", "21:00"]],
+    "watering_style": "small_portions",
+    "soil_preference": "let_surface_dry",
+    "threshold_shift_pct": -3,
+    "requires_confirmation": true,
+    "source_type": "family_memory"
+  },
+  "notification": {"status": "mock", "source_type": "mock"}
+}

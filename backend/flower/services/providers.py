@@ -1,4 +1,6 @@
 import base64
+from importlib.resources import files
+import json
 from typing import Literal
 
 import httpx
@@ -25,38 +27,29 @@ class RecognitionResult(StrictModel):
 
 
 class MockProviders:
+    def __init__(self):
+        self.data = json.loads(
+            files("flower").joinpath("data/offline_demo.json").read_text(encoding="utf-8")
+        )
+        if self.data["spec_version"] != "2.2.2" or self.data["source_type"] != "mock":
+            raise ValueError("INVALID_MOCK_DATA")
+
     def search(self, plant):
         from flower.services.knowledge import CareSource
 
-        sources = [
-            {
-                "id": "rhs",
-                "url": "https://www.rhs.org.uk/plants/jasmine/growing-guide",
-                "title": "RHS Jasmine growing guide",
-            },
-            {
-                "id": "kew",
-                "url": "https://powo.science.kew.org/",
-                "title": "Kew Plants of the World Online",
-            },
-        ]
         return [
             CareSource(
                 **source,
-                summary="Mock cached horticultural reference; confirm locally.",
-                category="horticultural",
                 retrieved_at=utcnow(),
-                confidence=0.8,
-                source_type="mock",
             ).model_dump(mode="json")
-            for source in sources
+            for source in self.data["sources"]
         ]
 
     def structure_care(self, sources):
         from flower.services.knowledge import Knowledge
 
-        return Knowledge(
-            source_ids=[source["id"] for source in sources], confidence=0.8, needs_review=False
+        return Knowledge.model_validate(
+            self.data["knowledge"] | {"source_ids": [source["id"] for source in sources]}
         ).model_dump(mode="json")
 
     def weather(self, plant):
@@ -64,40 +57,21 @@ class MockProviders:
         from flower.services.knowledge import Weather
 
         return Weather(
-            temperature_c=25,
-            rain_next_12h_mm=0,
+            **self.data["weather"],
             observed_at=utcnow(),
             valid_until=utcnow() + timedelta(hours=3),
-            provider="mock",
-            source_type="mock",
         ).model_dump(mode="json")
 
     def structure_memory(self, text):
         from flower.services.knowledge import MemoryRule
 
-        return MemoryRule(
-            preferred_windows=[["18:00", "21:00"]],
-            watering_style="small_portions",
-            soil_preference="let_surface_dry",
-            threshold_shift_pct=-3,
-        ).model_dump(mode="json")
+        return MemoryRule.model_validate(self.data["memory_rule"]).model_dump(mode="json")
 
     def notify(self, message):
-        return {"status": "mock", "source_type": "mock"}
+        return dict(self.data["notification"])
 
     def recognize(self, content):
-        return RecognitionResult(
-            candidates=[
-                Candidate(common_name="茉莉", scientific_name="Jasminum sambac", confidence=0.82),
-                Candidate(
-                    common_name="栀子", scientific_name="Gardenia jasminoides", confidence=0.12
-                ),
-                Candidate(common_name="山茶", scientific_name="Camellia japonica", confidence=0.06),
-            ],
-            provider="mock",
-            input_quality="good",
-            source_type="mock",
-        ).model_dump(mode="json")
+        return RecognitionResult.model_validate(self.data["recognition"]).model_dump(mode="json")
 
 
 class HTTPProviders:

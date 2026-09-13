@@ -21,6 +21,8 @@ Pi包含ADS1115、P451、GPIO17、SHT30/被动ATC1441 BLE及USB相机适配、�
 
 小程序覆盖状态、手动补水、自动守护、品种确认、养护卡、趋势、事件、记忆图文/规则和告警。浏览器预览是额外开发客户端，不能替代原生微信验收。真实知识/天气/微信使用Provider和秘密配置边界，当前运行的是Mock。
 
+独立离线数据包位于`backend/flower/data/offline_demo.json`，Mock Provider直接读取并通过原有Schema校验。包含Top3、两条来源展示记录、知识、模拟天气、待确认记忆规则和模拟通知；不包含真实遥测或执行参数。规格21.2的17项交付文件映射见`evidence/stage8-delivery-inventory.md`，文件齐备不代表生产或实物验收完成。
+
 ## 3. 共享宿主机边界
 
 未修改`/root/aibot`、`/opt/asist-embodiment`或`/srv/flower`，未安装Docker，未修改Nginx、UFW/nft、Tailscale、OpenVPN。没有重复全面服务器审计。
@@ -31,7 +33,7 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 
 | 命令/范围 | 结果 | 证据 |
 |---|---|---|
-| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-deployment-sequence-postgres.xml` | PASS，220项 | [PostgreSQL回归](evidence/stage8-deployment-sequence-postgres.xml) |
+| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-offline-data-postgres.xml` | PASS，222项 | [PostgreSQL回归](evidence/stage8-offline-data-postgres.xml) |
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
 | `npm --prefix miniapp test` | PASS，13项 | [Node执行记录](evidence/stage8-species-photo-node-green.tap) |

@@ -2,6 +2,10 @@
 
 ## 已验证的软件演示
 
+离线数据包为`backend/flower/data/offline_demo.json`，包含Top3候选、两条来源展示记录、养护知识、天气读数、待确认家庭规则和模拟通知结果。`MockProviders`直接读取此文件，源码发布包和后端镜像均携带它；配置`PROVIDER_MODE=mock`即可使用，无需外部Provider连接。所有值仍标记mock，来源URL仅为演示引用，不代表本次联网检索。天气与来源时间在模拟调用时生成，不是真实观测或抓取时间。
+
+示例照片为`miniapp/assets/plant.jpg`，明确不是用户实物。开发启动器生成带mock标签的趋势；数据包不包含real遥测、命令、水量或GPIO参数。真实设备仍通过原有建单、安全门和本地账本执行，不能导入此包伪造真实趋势或绕过确认。
+
 `backend/tests/test_full_mock_flow.py`运行图片上传、Mock Top3、品种确认、异步养护卡、显式确认、`create_command()`、Pi `can_dispense()`、多脉冲、回执和跨API对账。所有遥测与执行标注mock。它使用加速单调时钟，不是物理泵演示。
 
 开发预览：`.venv/bin/python scripts/dev_server.py`，打开`http://127.0.0.1:18082/preview/`。
