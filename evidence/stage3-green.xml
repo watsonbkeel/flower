@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="6" time="1.029" timestamp="2026-09-13T15:51:05.330576+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_jobs_images" name="test_image_upload_authorization_and_recognition_job" time="0.212" /><testcase classname="backend.tests.test_jobs_images" name="test_image_magic_size_and_ownership" time="0.184" /><testcase classname="backend.tests.test_jobs_images" name="test_low_disk_refuses_upload_and_persists_alert" time="0.116" /><testcase classname="backend.tests.test_jobs_images" name="test_job_idempotency_and_expired_lease_fences_old_worker" time="0.172"><failure message="TypeError: 'NoneType' object is not subscriptable">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fdef4f811d0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyODc2NjZ9.jD0-NI-fM8xoGbOv6OldW5mWVjwjNbraIVdhA_uUD1g'}, 'device_id': 'b5f3c078-b7e0-4ed8-ab16-bbc8531895eb', ...}
+
+    def test_job_idempotency_and_expired_lease_fences_old_worker(system):
+        sessions = system["app"].state.sessions
+        now = utcnow()
+        with sessions.begin() as db:
+            first = enqueue_job(db, "plant_recognition", "plant", system["plant_id"], system["user_id"], "same")
+            second = enqueue_job(db, "plant_recognition", "plant", system["plant_id"], system["user_id"], "same")
+            assert first.id == second.id
+        with sessions.begin() as db:
+            old = claim_job(db, "old-worker", now)
+        with sessions.begin() as db:
+            recover_jobs(db, now + timedelta(seconds=100))
+        with sessions.begin() as db:
+            new = claim_job(db, "new-worker", now + timedelta(seconds=120))
+&gt;           assert new["id"] == old["id"]
+                                ^^^^^^^^^
+E           TypeError: 'NoneType' object is not subscriptable
+
+backend/tests/test_jobs_images.py:74: TypeError</failure></testcase><testcase classname="backend.tests.test_jobs_images" name="test_worker_failure_retries_are_bounded" time="0.130" /><testcase classname="backend.tests.test_jobs_images" name="test_manual_species_confirmation_required_and_capture_uses_command_gate" time="0.132" /></testsuite></testsuites>

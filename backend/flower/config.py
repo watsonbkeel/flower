@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=None, extra="ignore")
+    model_config = SettingsConfigDict(env_file=None, extra="ignore", hide_input_in_errors=True)
     app_env: Literal["development", "test", "production"] = "development"
     spec_version: Literal["2.2.2"] = "2.2.2"
     software_version: str = "development"
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     pump_max_24h_ml: float = Field(default=120, gt=0, le=120)
     pump_min_interval_hours: float = Field(default=6, ge=6)
     urgent_override_gap_pct: float = Field(default=15, ge=15)
-    job_max_concurrency: Literal[1] = 1
+    job_max_concurrency: int = Field(default=1, ge=1, le=1)
     job_recovery_scan_sec: int = 60
     alert_dedup_hours: int = 6
     wechat_app_id: str = ""

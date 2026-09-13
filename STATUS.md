@@ -1,7 +1,7 @@
 # STATUS.md
 
 - 当前规格：v2.2.2 Server-Integrated
-- 当前 Stage：2
+- 当前 Stage：3
 - 实现状态：IN_PROGRESS
 - 架构审计：COMPLETE（只读，2026-09-13）
 - 最近更新：2026-09-13
@@ -13,6 +13,7 @@
 - [x] Stage 0：基线校验、独立分支、后端配置/健康端点、显式迁移、Compose骨架及preflight脚本
 - [x] Stage 1安全核心：67项累计自动化测试通过（55项Pi Mock/单元测试）；硬件适配层已实现，实物未验收
 - [x] Stage 2设备链路：86项累计测试在独立PostgreSQL 17.11通过；鉴权、原子领取、双时钟、遥测、回执和保守对账
+- [x] Stage 3：可靠Worker子进程、租约与重试、图片鉴权/低空间保护、Top3 Mock识别与手动确认；累计93项通过
 
 ## 当前进行
 
@@ -21,7 +22,7 @@
 
 ## 下一步
 
-- [ ] Stage 3：可靠Worker、图片生命周期与识别Provider
+- [ ] Stage 4：知识/天气/LLM Schema、完整确定性决策与记忆策略
 
 ## 开发证据
 

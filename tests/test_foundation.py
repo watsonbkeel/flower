@@ -19,6 +19,14 @@ def test_frozen_baseline():
     assert len(list(Path("docs/server-audit").glob("*.md"))) == 8
 
 
+def test_numeric_environment_and_validation_secret_redaction(monkeypatch):
+    monkeypatch.setenv("JOB_MAX_CONCURRENCY", "1")
+    assert Settings().job_max_concurrency == 1
+    with pytest.raises(ValueError) as error:
+        Settings(app_env="production", secret_key="DO-NOT-LOG-THIS-SECRET")
+    assert "DO-NOT-LOG-THIS-SECRET" not in str(error.value)
+
+
 @pytest.mark.parametrize(
     "override",
     [

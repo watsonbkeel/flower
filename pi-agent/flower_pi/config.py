@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class PiSettings(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore")
+    model_config = SettingsConfigDict(extra="ignore", hide_input_in_errors=True)
     spec_version: Literal["2.2.2"] = "2.2.2"
     hardware_mode: Literal["mock", "real"] = "mock"
     app_env: Literal["development", "production"] = "development"
@@ -17,8 +17,8 @@ class PiSettings(BaseSettings):
     local_db_path: Path = Path(".runtime/pi-state.db")
     calibration_path: Path = Path(".runtime/calibration.json")
     camera_path: str = "/dev/v4l/by-id/UNCONFIGURED"
-    pump_gpio: Literal[17] = 17
-    water_level_gpio: Literal[27] = 27
+    pump_gpio: int = Field(default=17, ge=17, le=17)
+    water_level_gpio: int = Field(default=27, ge=27, le=27)
     pump_max_24h_ml: float = Field(default=120, gt=0, le=120)
     pump_min_interval_hours: float = Field(default=6, ge=6)
     temp_humidity_provider: Literal["xiaomi_ble", "sht30", "mock"] = "mock"

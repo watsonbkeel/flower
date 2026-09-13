@@ -22,6 +22,37 @@ class WaterRequest(StrictModel):
     unit: Literal["ml", "portion"] = "ml"
 
 
+class SpeciesConfirmation(StrictModel):
+    common_name: str = Field(min_length=1, max_length=200)
+    scientific_name: str = Field(min_length=1, max_length=200)
+    input_method: Literal["manual", "recognition"]
+    confidence: float | None = Field(default=None, ge=0, le=1)
+
+
+class PlantInput(StrictModel):
+    device_id: str
+    name: str = Field(min_length=1, max_length=100)
+    city: str = Field(min_length=1, max_length=100)
+    timezone: str = "Asia/Shanghai"
+    placement_type: Literal["indoor", "outdoor", "balcony"] = "indoor"
+    pot_size: Literal["small", "medium", "large"] = "small"
+    pot_material: Literal["plastic", "terracotta", "ceramic"] = "plastic"
+    pot_diameter_cm: float | None = Field(default=None, gt=0, le=200)
+    has_drainage: bool
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+
+    @model_validator(mode="after")
+    def valid_timezone(self):
+        from zoneinfo import ZoneInfo
+
+        try:
+            ZoneInfo(self.timezone)
+        except (ValueError, KeyError) as exc:
+            raise ValueError("invalid timezone") from exc
+        return self
+
+
 class TelemetryInput(StrictModel):
     event_id: str = Field(min_length=1, max_length=100)
     occurred_at: AwareDatetime
