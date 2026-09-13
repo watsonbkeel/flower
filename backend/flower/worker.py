@@ -37,7 +37,7 @@ class Worker:
 
         with self.sessions.begin() as db:
             job = owned_job(db, claim["id"], claim["locked_by"], claim["attempt"])
-            if job is None:
+            if job is None or job.locked_at + timedelta(seconds=job.timeout_sec) <= utcnow():
                 return False
             if job.job_type in {"trend_aggregation", "cleanup"}:
                 result = (
@@ -175,7 +175,10 @@ class Worker:
                 from flower.services.care import refresh_fallback_for_plant
 
                 refresh_fallback_for_plant(db, self.settings, previous_plant_id)
-            return complete_job(db, job.id, claim["locked_by"], claim["attempt"], result)
+            if not complete_job(db, job.id, claim["locked_by"], claim["attempt"], result):
+                db.rollback()
+                return False
+            return True
 
     def run_once(self, isolated=False):
         claim = self.acquire()

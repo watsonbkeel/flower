@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="6" time="1.364" timestamp="2026-09-13T18:20:53.217463+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_worker_atomic_result" name="test_expiry_at_result_commit_rolls_back_all_business_changes[care_research]" time="0.485"><failure message="AssertionError: assert {'alerts': []...ies': [], ...} == {'alerts': []...ies': [], ...}&#10;  &#10;  Omitting 4 identical items, use -vv to show&#10;  Differing items:&#10;  {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:53.594122+00:00', 'id': '...irmed_at': None, 'created_at': '2026-09-13T10:20:53.743159+00:00', 'id': 'f7aa28e5-4179-49ab-912b-c066723a1c74', ...}]} != {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:53.594122+00:00', 'id': '66ee7c27-e9fa-4797-b4d2-d8f1b67d92b0', ...}]}&#10;  Use -v to get more diff">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f4e003da120&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY2NTN9.kqMEJATwTQ0zHvIPuhX9OF7SgBj_nY0H_UHuD_yPq3k'}, 'device_id': '334e231d-d515-4b2a-ba35-a25ef57a66d0', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f4dff7a2780&gt;
+kind = 'care_research'
+
+    @pytest.mark.parametrize("kind", ["care_research", "memory_structure", "weather_refresh", "plant_recognition", "alert_notification"])
+    def test_expiry_at_result_commit_rolls_back_all_business_changes(system, monkeypatch, kind):
+        jid = prepare_job(system, kind)
+
+        class SimulatedSent(MockProviders):
+            def notify(self, message):
+                return {"status": "sent", "source_type": "real"}
+
+        worker = Worker(system["app"].state.sessions, system["settings"])
+        worker.providers = SimulatedSent()
+        claim = worker.acquire()
+        assert claim["id"] == jid
+        before = business_snapshot(system)
+        deadline = datetime.fromisoformat(claim["locked_at"]) + timedelta(seconds=claim["timeout_sec"])
+        monkeypatch.setattr("flower.services.jobs.utcnow", lambda: deadline)
+        assert worker.perform(claim) is False
+&gt;       assert business_snapshot(system) == before
+E       AssertionError: assert {'alerts': []...ies': [], ...} == {'alerts': []...ies': [], ...}
+E
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:53.594122+00:00', 'id': '...irmed_at': None, 'created_at': '2026-09-13T10:20:53.743159+00:00', 'id': 'f7aa28e5-4179-49ab-912b-c066723a1c74', ...}]} != {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:53.594122+00:00', 'id': '66ee7c27-e9fa-4797-b4d2-d8f1b67d92b0', ...}]}
+E         Use -v to get more diff
+
+backend/tests/test_worker_atomic_result.py:60: AssertionError</failure></testcase><testcase classname="backend.tests.test_worker_atomic_result" name="test_expiry_at_result_commit_rolls_back_all_business_changes[memory_structure]" time="0.211"><failure message="AssertionError: assert {'alerts': []...e, ...}], ...} == {'alerts': []...e, ...}], ...}&#10;  &#10;  Omitting 3 identical items, use -vv to show&#10;  Differing items:&#10;  {'fallback_policies': [{'created_at': '2026-09-13T10:20:53.961512+00:00', 'device_id': 'be1fb8d7-4749-46e2-b78a-d83b81...d83b81e98bac', 'id': 'f6d4119a-5ff1-4698-91c7-136c73a59da7', 'plant_id': '4c23f833-1b88-4df8-800a-a25c0fab1f60', ...}]} != {'fallback_policies': [{'created_at': '2026-09-13T10:20:53.961512+00:00', 'device_id': 'be1fb8d7-4749-46e2-b78a-d83b81e98bac', 'id': '64518039-8262-40e9-9cf0-803f8093be13', 'plant_id': '4c23f833-1b88-4df8-800a-a25c0fab1f60', ...}]}&#10;  {'memories': [{'applied_count': 0, 'create...&#10;  &#10;  ...Full output truncated (2 lines hidden), use '-vv' to show">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f4dff329d10&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY2NTN9.NMdNucCKWeLaWJfuIoD2sT_7avSz4p1MSElvVTRQFd0'}, 'device_id': 'be1fb8d7-4749-46e2-b78a-d83b81e98bac', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f4dff785e00&gt;
+kind = 'memory_structure'
+
+    @pytest.mark.parametrize("kind", ["care_research", "memory_structure", "weather_refresh", "plant_recognition", "alert_notification"])
+    def test_expiry_at_result_commit_rolls_back_all_business_changes(system, monkeypatch, kind):
+        jid = prepare_job(system, kind)
+
+        class SimulatedSent(MockProviders):
+            def notify(self, message):
+                return {"status": "sent", "source_type": "real"}
+
+        worker = Worker(system["app"].state.sessions, system["settings"])
+        worker.providers = SimulatedSent()
+        claim = worker.acquire()
+        assert claim["id"] == jid
+        before = business_snapshot(system)
+        deadline = datetime.fromisoformat(claim["locked_at"]) + timedelta(seconds=claim["timeout_sec"])
+        monkeypatch.setattr("flower.services.jobs.utcnow", lambda: deadline)
+        assert worker.perform(claim) is False
+&gt;       assert business_snapshot(system) == before
+E       AssertionError: assert {'alerts': []...e, ...}], ...} == {'alerts': []...e, ...}], ...}
+E
+E         Omitting 3 identical items, use -vv to show
+E         Differing items:
+E         {'fallback_policies': [{'created_at': '2026-09-13T10:20:53.961512+00:00', 'device_id': 'be1fb8d7-4749-46e2-b78a-d83b81...d83b81e98bac', 'id': 'f6d4119a-5ff1-4698-91c7-136c73a59da7', 'plant_id': '4c23f833-1b88-4df8-800a-a25c0fab1f60', ...}]} != {'fallback_policies': [{'created_at': '2026-09-13T10:20:53.961512+00:00', 'device_id': 'be1fb8d7-4749-46e2-b78a-d83b81e98bac', 'id': '64518039-8262-40e9-9cf0-803f8093be13', 'plant_id': '4c23f833-1b88-4df8-800a-a25c0fab1f60', ...}]}
+E         {'memories': [{'applied_count': 0, 'create...
+E
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+backend/tests/test_worker_atomic_result.py:60: AssertionError</failure></testcase><testcase classname="backend.tests.test_worker_atomic_result" name="test_expiry_at_result_commit_rolls_back_all_business_changes[weather_refresh]" time="0.138"><failure message="AssertionError: assert {'alerts': []...ies': [], ...} == {'alerts': []...ies': [], ...}&#10;  &#10;  Omitting 4 identical items, use -vv to show&#10;  Differing items:&#10;  {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:54.089319+00:00', 'id': '6d8e65ce-e993-47a0-96ad-432356fe0bf4', ...}]} != {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:54.089319+00:00', 'id': '6d8e65ce-e993-47a0-96ad-432356fe0bf4', ...}]}&#10;  Use -v to get more diff">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f4dff770910&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY2NTR9.FIWSlRkBdY-F5HOCK0BY1nRgdLLYUQI33uWQXM871a0'}, 'device_id': 'b71f7444-f12e-4a56-aaa0-9120b0b5e721', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f4dfd7d9eb0&gt;
+kind = 'weather_refresh'
+
+    @pytest.mark.parametrize("kind", ["care_research", "memory_structure", "weather_refresh", "plant_recognition", "alert_notification"])
+    def test_expiry_at_result_commit_rolls_back_all_business_changes(system, monkeypatch, kind):
+        jid = prepare_job(system, kind)
+
+        class SimulatedSent(MockProviders):
+            def notify(self, message):
+                return {"status": "sent", "source_type": "real"}
+
+        worker = Worker(system["app"].state.sessions, system["settings"])
+        worker.providers = SimulatedSent()
+        claim = worker.acquire()
+        assert claim["id"] == jid
+        before = business_snapshot(system)
+        deadline = datetime.fromisoformat(claim["locked_at"]) + timedelta(seconds=claim["timeout_sec"])
+        monkeypatch.setattr("flower.services.jobs.utcnow", lambda: deadline)
+        assert worker.perform(claim) is False
+&gt;       assert business_snapshot(system) == before
+E       AssertionError: assert {'alerts': []...ies': [], ...} == {'alerts': []...ies': [], ...}
+E
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:54.089319+00:00', 'id': '6d8e65ce-e993-47a0-96ad-432356fe0bf4', ...}]} != {'care_profiles': [{'confirmed': True, 'confirmed_at': None, 'created_at': '2026-09-13T10:20:54.089319+00:00', 'id': '6d8e65ce-e993-47a0-96ad-432356fe0bf4', ...}]}
+E         Use -v to get more diff
+
+backend/tests/test_worker_atomic_result.py:60: AssertionError</failure></testcase><testcase classname="backend.tests.test_worker_atomic_result" name="test_expiry_at_result_commit_rolls_back_all_business_changes[plant_recognition]" time="0.168"><failure message="AssertionError: assert {'alerts': []...ies': [], ...} == {'alerts': []...ies': [], ...}&#10;  &#10;  Omitting 4 identical items, use -vv to show&#10;  Differing items:&#10;  {'plant_images': [{'created_at': '2026-09-13T10:20:54.276371+00:00', 'device_id': 'd2cff5eb-a415-4b11-8756-ba0f31a45b4...xpires_at': '2026-12-12T10:20:54.275155+00:00', 'file_path': '2026/09/7ecab3e5-6f01-46b5-bbf8-73d16710cbdc.jpg', ...}]} != {'plant_images': [{'created_at': '2026-09-13T10:20:54.276371+00:00', 'device_id': 'd2cff5eb-a415-4b11-8756-ba0f31a45b4...xpires_at': '2026-12-12T10:20:54.275155+00:00', 'file_path': '2026/09/7ecab3e5-6f01-46b5-bbf8-73d16710cbdc.jpg', ...}]}&#10;  Use -v to get more diff">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f4dfd7ab750&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY2NTR9.uHAc697jbUDt1QKSfpwGgiaxwqmXuIwt-n3-w-x2YzA'}, 'device_id': 'd2cff5eb-a415-4b11-8756-ba0f31a45b40', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f4dfebd9e10&gt;
+kind = 'plant_recognition'
+
+    @pytest.mark.parametrize("kind", ["care_research", "memory_structure", "weather_refresh", "plant_recognition", "alert_notification"])
+    def test_expiry_at_result_commit_rolls_back_all_business_changes(system, monkeypatch, kind):
+        jid = prepare_job(system, kind)
+
+        class SimulatedSent(MockProviders):
+            def notify(self, message):
+                return {"status": "sent", "source_type": "real"}
+
+        worker = Worker(system["app"].state.sessions, system["settings"])
+        worker.providers = SimulatedSent()
+        claim = worker.acquire()
+        assert claim["id"] == jid
+        before = business_snapshot(system)
+        deadline = datetime.fromisoformat(claim["locked_at"]) + timedelta(seconds=claim["timeout_sec"])
+        monkeypatch.setattr("flower.services.jobs.utcnow", lambda: deadline)
+        assert worker.perform(claim) is False
+&gt;       assert business_snapshot(system) == before
+E       AssertionError: assert {'alerts': []...ies': [], ...} == {'alerts': []...ies': [], ...}
+E
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'plant_images': [{'created_at': '2026-09-13T10:20:54.276371+00:00', 'device_id': 'd2cff5eb-a415-4b11-8756-ba0f31a45b4...xpires_at': '2026-12-12T10:20:54.275155+00:00', 'file_path': '2026/09/7ecab3e5-6f01-46b5-bbf8-73d16710cbdc.jpg', ...}]} != {'plant_images': [{'created_at': '2026-09-13T10:20:54.276371+00:00', 'device_id': 'd2cff5eb-a415-4b11-8756-ba0f31a45b4...xpires_at': '2026-12-12T10:20:54.275155+00:00', 'file_path': '2026/09/7ecab3e5-6f01-46b5-bbf8-73d16710cbdc.jpg', ...}]}
+E         Use -v to get more diff
+
+backend/tests/test_worker_atomic_result.py:60: AssertionError</failure></testcase><testcase classname="backend.tests.test_worker_atomic_result" name="test_expiry_at_result_commit_rolls_back_all_business_changes[alert_notification]" time="0.131"><failure message="AssertionError: assert {'alerts': [{...ies': [], ...} == {'alerts': [{...ies': [], ...}&#10;  &#10;  Omitting 4 identical items, use -vv to show&#10;  Differing items:&#10;  {'alerts': [{'alert_type': 'LOW_WATER', 'created_at': '2026-09-13T10:20:54.413749+00:00', 'device_id': '5d802dc5-181f-4dfa-959e-13f03d29cbac', 'id': 'db33f072-684b-4634-b4a5-c94a95868d08', ...}]} != {'alerts': [{'alert_type': 'LOW_WATER', 'created_at': '2026-09-13T10:20:54.413749+00:00', 'device_id': '5d802dc5-181f-4dfa-959e-13f03d29cbac', 'id': 'db33f072-684b-4634-b4a5-c94a95868d08', ...}]}&#10;  Use -v to get more diff">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f4dfeb0f890&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY2NTR9.3JGKRYh7LuoPAxwHKl2v_B3gL-hVO_wFG3DYusHcBOM'}, 'device_id': '5d802dc5-181f-4dfa-959e-13f03d29cbac', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f4dfd526470&gt;
+kind = 'alert_notification'
+
+    @pytest.mark.parametrize("kind", ["care_research", "memory_structure", "weather_refresh", "plant_recognition", "alert_notification"])
+    def test_expiry_at_result_commit_rolls_back_all_business_changes(system, monkeypatch, kind):
+        jid = prepare_job(system, kind)
+
+        class SimulatedSent(MockProviders):
+            def notify(self, message):
+                return {"status": "sent", "source_type": "real"}
+
+        worker = Worker(system["app"].state.sessions, system["settings"])
+        worker.providers = SimulatedSent()
+        claim = worker.acquire()
+        assert claim["id"] == jid
+        before = business_snapshot(system)
+        deadline = datetime.fromisoformat(claim["locked_at"]) + timedelta(seconds=claim["timeout_sec"])
+        monkeypatch.setattr("flower.services.jobs.utcnow", lambda: deadline)
+        assert worker.perform(claim) is False
+&gt;       assert business_snapshot(system) == before
+E       AssertionError: assert {'alerts': [{...ies': [], ...} == {'alerts': [{...ies': [], ...}
+E
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'alerts': [{'alert_type': 'LOW_WATER', 'created_at': '2026-09-13T10:20:54.413749+00:00', 'device_id': '5d802dc5-181f-4dfa-959e-13f03d29cbac', 'id': 'db33f072-684b-4634-b4a5-c94a95868d08', ...}]} != {'alerts': [{'alert_type': 'LOW_WATER', 'created_at': '2026-09-13T10:20:54.413749+00:00', 'device_id': '5d802dc5-181f-4dfa-959e-13f03d29cbac', 'id': 'db33f072-684b-4634-b4a5-c94a95868d08', ...}]}
+E         Use -v to get more diff
+
+backend/tests/test_worker_atomic_result.py:60: AssertionError</failure></testcase><testcase classname="backend.tests.test_worker_atomic_result" name="test_already_expired_notification_does_not_call_provider" time="0.123"><failure message="AssertionError: assert [{'alert_type...14e763', ...}] == []&#10;  &#10;  Left contains one more item: {'alert_type': 'LOW_WATER', 'created_at': '2026-09-13T10:20:54.546470+00:00', 'device_id': 'f03172a6-b53f-4c49-81d5-e91b7cb3c745', 'id': '18dfd6d9-e5ad-4c38-8e97-3c69ae14e763', ...}&#10;  Use -v to get more diff">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f4dfd47cf50&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTY2NTR9.zFBahO6f8QjKqvGDSEPu5B2aByhjjp0FQRNjFJMe7XM'}, 'device_id': 'f03172a6-b53f-4c49-81d5-e91b7cb3c745', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f4dfd5de450&gt;
+
+    def test_already_expired_notification_does_not_call_provider(system, monkeypatch):
+        prepare_job(system, "alert_notification")
+        worker = Worker(system["app"].state.sessions, system["settings"])
+        claim = worker.acquire()
+        deadline = datetime.fromisoformat(claim["locked_at"]) + timedelta(seconds=claim["timeout_sec"])
+        calls = []
+
+        class Recording(MockProviders):
+            def notify(self, message):
+                calls.append(message)
+                return super().notify(message)
+
+        worker.providers = Recording()
+        monkeypatch.setattr("flower.worker.utcnow", lambda: deadline)
+        assert worker.perform(claim) is False
+&gt;       assert calls == []
+E       AssertionError: assert [{'alert_type...14e763', ...}] == []
+E
+E         Left contains one more item: {'alert_type': 'LOW_WATER', 'created_at': '2026-09-13T10:20:54.546470+00:00', 'device_id': 'f03172a6-b53f-4c49-81d5-e91b7cb3c745', 'id': '18dfd6d9-e5ad-4c38-8e97-3c69ae14e763', ...}
+E         Use -v to get more diff
+
+backend/tests/test_worker_atomic_result.py:91: AssertionError</failure></testcase></testsuite></testsuites>
