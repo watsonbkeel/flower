@@ -63,3 +63,13 @@ def test_no_voice_or_http_entry_can_energize():
         assert "aibot" not in path.read_text()
         assert "HTTPServer" not in path.read_text()
     assert set(callers) == {"commands/executor.py"}
+
+
+def test_real_telemetry_omits_mock_air_values():
+    from flower_pi.main import air_telemetry
+    from flower_pi.sensors.air import MockAir
+
+    values = air_telemetry(MockAir().read(), "real")
+    assert values["temperature_c"] is None
+    assert values["air_humidity"] is None
+    assert values["sensor_health"]["air_source_type"] == "mock"

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.242" timestamp="2026-09-13T17:16:17.168244+08:00" hostname="VM-0-13-debian"><testcase classname="pi-agent.tests.test_adapters" name="test_real_telemetry_omits_mock_air_values" time="0.106"><failure message="ImportError: cannot import name 'air_telemetry' from 'flower_pi.main' (/root/flower/pi-agent/flower_pi/main.py)">def test_real_telemetry_omits_mock_air_values():
+&gt;       from flower_pi.main import air_telemetry
+E       ImportError: cannot import name 'air_telemetry' from 'flower_pi.main' (/root/flower/pi-agent/flower_pi/main.py)
+
+pi-agent/tests/test_adapters.py:67: ImportError</failure></testcase></testsuite></testsuites>

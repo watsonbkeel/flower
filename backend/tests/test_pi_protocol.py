@@ -36,3 +36,22 @@ def test_api_command_decodes_in_pi(system):
     assert command.max_pulses == 2
     assert command.session_max_duration_sec > 60
     assert command.device_id == system["device_id"]
+
+
+def test_cloud_policy_revocation_clears_cached_fallback(tmp_path):
+    from flower_pi.main import refresh_policy
+    from flower_pi.storage.ledger import Ledger
+
+    ledger = Ledger(tmp_path / "local.db")
+    ledger.set_value("fallback", {"auto_mode": True})
+
+    class Revoked:
+        def request(self, *args):
+            response = httpx.Response(
+                404, request=httpx.Request("GET", "https://flower.invalid/fallback")
+            )
+            response.raise_for_status()
+
+    assert refresh_policy(Revoked(), ledger) is None
+    assert ledger.value("fallback") == {}
+    ledger.close()

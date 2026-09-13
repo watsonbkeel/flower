@@ -142,6 +142,58 @@ class Ledger:
             self.set_value("cloud_quota", {"used": cloud_used, "observed": wall})
         return max(local, cloud_used), local != cloud_used
 
+    def receipts(self):
+        rows = self.connection.execute(
+            "SELECT key,value FROM local_values WHERE key LIKE 'receipt:%' ORDER BY key LIMIT 100"
+        )
+        return [
+            {"command_id": row["key"][8:], "result": json.loads(row["value"])}
+            for row in rows
+            if self.get(row["key"][8:])["source"] != "local_fallback"
+        ]
+
+    def reconcile_receipt(self, receipt, now):
+        command_id = receipt["command_id"]
+        row = self.get(command_id)
+        local = self.value("receipt:" + command_id)
+        result = receipt["result"]
+        if not local or not row:
+            raise ValueError("MISSING_LOCAL_RECEIPT")
+
+        def normalized(value):
+            return (
+                value.get("status"),
+                value.get("actual_ml"),
+                datetime.fromisoformat(value["finished_at"]),
+                [
+                    (p["pulse"], p["estimated_ml"], datetime.fromisoformat(p["finished_at"]))
+                    for p in value["pulses"]
+                ],
+            )
+
+        if normalized(local) != normalized(result):
+            raise ValueError("RECEIPT_MISMATCH")
+        end = datetime.fromisoformat(result["finished_at"])
+        amount = result["actual_ml"]
+        if (
+            result["status"] != "succeeded"
+            or not math.isfinite(amount)
+            or not 0 <= amount <= row["reserved_ml"]
+            or end.tzinfo is None
+            or not row["trusted_wall_time_utc"] <= timestamp(end) <= timestamp(now)
+            or abs(sum(p["estimated_ml"] for p in result["pulses"]) - amount) > 0.001
+        ):
+            raise ValueError("UNVERIFIED_SETTLEMENT")
+        with self.connection:
+            self.connection.execute(
+                "UPDATE water_ledger SET state='reconciled',actual_ml=?,quota_ml=? WHERE command_id=?",
+                (amount, amount, command_id),
+            )
+            self.connection.execute(
+                "DELETE FROM local_values WHERE key=?", ("receipt:" + command_id,)
+            )
+        return True
+
     def value(self, key, default=None):
         row = self.connection.execute(
             "SELECT value FROM local_values WHERE key=?", (key,)

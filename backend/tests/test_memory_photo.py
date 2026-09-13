@@ -21,5 +21,7 @@ def test_owner_can_upload_memory_photo_without_recognition(system):
         json={"title": "Memory", "plant_id": system["plant_id"], "photo_id": photo},
     )
     assert memory.status_code == 201
+    listed = client.get("/api/v1/memories", headers=system["user_headers"]).json()
+    assert listed[0]["photo_id"] == photo
     assert client.get("/api/v1/images/" + photo).status_code == 401
     assert client.get("/api/v1/images/" + photo, headers=system["user_headers"]).status_code == 200

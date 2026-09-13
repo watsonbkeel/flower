@@ -69,6 +69,14 @@ class Worker:
                 memory = db.get(Memory, job.target_id)
                 content = memory.original_experience
                 kind = job.job_type
+            elif job.job_type == "alert_notification":
+                from flower.models import Alert
+                from flower.schemas import serialize
+
+                content = serialize(db.get(Alert, job.target_id)) | {
+                    "idempotency_key": job.idempotency_key
+                }
+                kind = job.job_type
             else:
                 raise ValueError("UNSUPPORTED_JOB")
         if kind == "plant_recognition":
@@ -77,6 +85,17 @@ class Worker:
             from flower.services.care import research
 
             result = research(self.providers, content)
+        elif kind == "alert_notification":
+            from flower.schemas import StrictModel, SourceType
+            from typing import Literal
+
+            class NotificationResult(StrictModel):
+                status: Literal["sent", "mock"]
+                source_type: SourceType
+
+            result = NotificationResult.model_validate(self.providers.notify(content)).model_dump(
+                mode="json"
+            )
         else:
             result = self.providers.structure_memory(content)
         with self.sessions.begin() as db:
@@ -114,6 +133,12 @@ class Worker:
                 db.add(profile)
                 db.flush()
                 result = {"profile_id": profile.id, "source_type": result["source_type"]}
+            elif kind == "alert_notification":
+                from flower.models import Alert
+
+                item = db.get(Alert, job.target_id)
+                if result["status"] == "sent" and result["source_type"] == "real":
+                    item.pushed_at = utcnow()
             else:
                 memory = db.get(Memory, job.target_id)
                 if memory.original_experience != content:

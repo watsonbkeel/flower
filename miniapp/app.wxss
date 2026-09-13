@@ -1,5 +1,6 @@
 page { background: #f3f5f4; color: #202923; font-size: 14px; font-family: sans-serif; letter-spacing: 0; }
 .page { padding: 32rpx; padding-bottom: 64rpx; }
+.page view, .page text { overflow-wrap: anywhere; min-width: 0; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; }
 .title { font-size: 20px; font-weight: 600; margin-bottom: 10rpx; }
 .section { padding: 32rpx 0; border-bottom: 1rpx solid #dce2de; }

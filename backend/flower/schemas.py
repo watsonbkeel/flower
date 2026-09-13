@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
@@ -108,6 +109,7 @@ class ResultInput(ProgressInput):
     actual_ml: float = Field(default=0, ge=0, le=60)
     provisional: bool = False
     reason: str | None = Field(default=None, max_length=100)
+    finished_at: AwareDatetime | None = None
 
 
 class CalibrationInput(StrictModel):
@@ -130,6 +132,12 @@ class CalibrationInput(StrictModel):
         return self
 
 
+class FallbackReceipt(StrictModel):
+    policy_version: int = Field(ge=1)
+    reserved_ml: float = Field(gt=0, le=15)
+    result: ResultInput
+
+
 class EventInput(StrictModel):
     event_id: str = Field(min_length=1, max_length=100)
     event_type: str = Field(min_length=1, max_length=100)
@@ -144,8 +152,14 @@ class EventBatch(StrictModel):
     events: list[EventInput] = Field(max_length=100)
 
 
+class ReconciliationReceipt(StrictModel):
+    command_id: UUID
+    result: ResultInput
+
+
 class QuotaInput(StrictModel):
     used_24h_ml: float = Field(ge=0, le=10000)
+    receipts: list[ReconciliationReceipt] = Field(default_factory=list, max_length=100)
 
 
 def serialize(record):

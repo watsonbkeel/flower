@@ -1,5 +1,6 @@
 :root { color-scheme: light; --green:#246b4b; --text:#25302a; --muted:#6a766e; --line:#dce3de; }
 * { box-sizing:border-box; letter-spacing:0; }
+main :is(p,h1,h2,small,label,blockquote) { overflow-wrap:anywhere; min-width:0; }
 body { margin:0; font:14px/1.6 system-ui,-apple-system,"Noto Sans CJK SC",sans-serif; color:var(--text); background:#f8faf9; }
 header { height:72px; display:flex; align-items:center; gap:30px; background:white; border-bottom:1px solid var(--line); padding:0 32px; position:sticky; top:0; z-index:5; }
 a { color:inherit; text-decoration:none; } button,a,input,textarea,select { -webkit-tap-highlight-color:transparent; }

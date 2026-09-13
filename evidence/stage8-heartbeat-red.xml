@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.037" timestamp="2026-09-13T16:54:19.128280+08:00" hostname="VM-0-13-debian"><testcase classname="pi-agent.tests.test_heartbeat" name="test_telemetry_runs_while_execution_thread_is_blocked" time="0.002"><failure message="ModuleNotFoundError: No module named 'flower_pi.telemetry'">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_telemetry_runs_while_exec0')
+
+    def test_telemetry_runs_while_execution_thread_is_blocked(tmp_path):
+&gt;       from flower_pi.telemetry import TelemetryReporter
+E       ModuleNotFoundError: No module named 'flower_pi.telemetry'
+
+pi-agent/tests/test_heartbeat.py:6: ModuleNotFoundError</failure></testcase></testsuite></testsuites>

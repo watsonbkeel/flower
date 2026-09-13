@@ -1,0 +1,17 @@
+{
+  "source_type": "mock",
+  "database": "development SQLite",
+  "health": {
+    "status": "alive",
+    "spec_version": "2.2.2",
+    "software_version": "development"
+  },
+  "ready": {
+    "status": "ready",
+    "spec_version": "2.2.2"
+  },
+  "requests": 100,
+  "concurrency": 4,
+  "p95_ms": 39.26,
+  "production_peak_test": "NOT_RUN"
+}

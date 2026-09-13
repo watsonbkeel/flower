@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.336" timestamp="2026-09-13T17:00:03.061005+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_reconciliation" name="test_fallback_receipt_creates_one_audit_session" time="0.267"><failure message="assert 0 == 1&#10; +  where 0 = len([])">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f5042e5dd30&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTE4MDN9.K8yd1urPeSeg_gmqnB_u_nZYN6kmilbT-o93ZOhbe60'}, 'device_id': '1562f6ef-63fb-42c5-9af5-ff8a2fe491c7', ...}
+
+    def test_fallback_receipt_creates_one_audit_session(system):
+        from flower.models import FallbackPolicy
+        from flower.services.care import issue_fallback
+        from flower.models import Plant, CareProfile
+        with system['app'].state.sessions.begin() as db:
+            plant = db.get(Plant, system['plant_id'])
+            profile = db.scalar(select(CareProfile).where(CareProfile.plant_id == plant.id))
+            issue_fallback(db, system['settings'], plant, profile)
+            policy = db.scalar(select(FallbackPolicy).where(FallbackPolicy.device_id == plant.device_id))
+            version, dose = policy.policy_version, policy.policy['pulse_ml']
+        now = utcnow()
+        event = {'event_id': 'fallback-session', 'event_type': 'local_fallback',
+            'source_type': 'mock', 'occurred_at': now.isoformat(), 'human_readable': 'Mock fallback',
+            'event_data': {'policy_version': version, 'reserved_ml': dose,
+                'result': {'status': 'succeeded', 'actual_ml': dose, 'finished_at': now.isoformat(),
+                    'pulses': [{'pulse': 1, 'estimated_ml': dose, 'finished_at': now.isoformat()}]}}}
+        for _ in range(2):
+            response = system['client'].post('/api/v1/device/events/batch', headers=system['device_headers'], json={'events': [event]})
+            assert response.status_code == 200
+        with system['app'].state.sessions() as db:
+            rows = list(db.scalars(select(WateringSession).where(WateringSession.local_id == 'fallback-session')))
+&gt;           assert len(rows) == 1
+E           assert 0 == 1
+E            +  where 0 = len([])
+
+backend/tests/test_reconciliation.py:73: AssertionError</failure></testcase></testsuite></testsuites>

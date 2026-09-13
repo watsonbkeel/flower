@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="15" time="0.343" timestamp="2026-09-13T16:52:25.075181+08:00" hostname="VM-0-13-debian"><testcase classname="pi-agent.tests.test_executor" name="test_long_session_ignores_claim_ttl_after_started" time="0.067" /><testcase classname="pi-agent.tests.test_executor" name="test_fault_during_pulse_closes_and_keeps_reservation[water]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_fault_during_pulse_closes_and_keeps_reservation[soil]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_fault_during_pulse_closes_and_keeps_reservation[clock]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_fault_during_pulse_closes_and_keeps_reservation[mode]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_fault_during_pulse_closes_and_keeps_reservation[exception]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_session_deadline_checked_during_wait" time="0.012" /><testcase classname="pi-agent.tests.test_executor" name="test_closed_loop_stops_after_target_and_reserves_before_open" time="0.056" /><testcase classname="pi-agent.tests.test_executor" name="test_invalid_execution_does_not_touch_pump[changes0]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_invalid_execution_does_not_touch_pump[changes1]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_invalid_execution_does_not_touch_pump[changes2]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_invalid_execution_does_not_touch_pump[changes3]" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_low_water_twenty_commands_no_starts" time="0.002" /><testcase classname="pi-agent.tests.test_executor" name="test_fallback_expiry_is_checked_during_pumping" time="0.034"><failure message="AssertionError: assert 'succeeded' == 'failed'&#10;  &#10;  - failed&#10;  + succeeded">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_fallback_expiry_is_checke0')
+
+    def test_fallback_expiry_is_checked_during_pumping(tmp_path):
+        from test_safety import make_policy
+        executor, cmd, pump, clock, states, ledger = setup_executor(tmp_path,
+            source='local_fallback', target_ml=10, pulse_ml=10, max_pulses=1)
+        states[0] = replace(states[0], operating_mode='LOCAL_CONSERVATIVE', soil_pct=10)
+        active = make_policy().model_copy(update={'pulse_ml': 10, 'max_session_ml': 10,
+            'valid_until': NOW + timedelta(seconds=0.2), 'allowed_windows_local': [('00:00', '23:59')]})
+        result = executor.execute(cmd, policy=active)
+&gt;       assert result['status'] == 'failed'
+E       AssertionError: assert 'succeeded' == 'failed'
+E
+E         - failed
+E         + succeeded
+
+pi-agent/tests/test_executor.py:165: AssertionError</failure></testcase><testcase classname="pi-agent.tests.test_executor" name="test_execution_reports_watering_during_all_pulses_and_waits" time="0.002"><failure message="AssertionError: assert 'failed' == 'succeeded'&#10;  &#10;  - succeeded&#10;  + failed">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_execution_reports_waterin0')
+
+    def test_execution_reports_watering_during_all_pulses_and_waits(tmp_path):
+        executor, cmd, pump, clock, states, ledger = setup_executor(tmp_path)
+        seen = []
+        clock.callback = lambda: seen.append(executor.activity)
+&gt;       assert executor.execute(cmd)['status'] == 'succeeded'
+E       AssertionError: assert 'failed' == 'succeeded'
+E
+E         - succeeded
+E         + failed
+
+pi-agent/tests/test_executor.py:175: AssertionError</failure></testcase></testsuite></testsuites>

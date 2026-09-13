@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: every native template handler exists
+ok 1 - every native template handler exists
+  ---
+  duration_ms: 8.713423
+  type: 'test'
+  ...
+# Subtest: memory job errors are handled and polling resumes on show
+ok 2 - memory job errors are handled and polling resumes on show
+  ---
+  duration_ms: 1.332486
+  type: 'test'
+  ...
+# Subtest: pending and claimed never mean watering complete
+ok 3 - pending and claimed never mean watering complete
+  ---
+  duration_ms: 1.355354
+  type: 'test'
+  ...
+# Subtest: data coverage and demo sources stay visible
+ok 4 - data coverage and demo sources stay visible
+  ---
+  duration_ms: 0.304971
+  type: 'test'
+  ...
+# Subtest: uncertain status disables manual watering
+ok 5 - uncertain status disables manual watering
+  ---
+  duration_ms: 0.210992
+  type: 'test'
+  ...
+# Subtest: chart points retain time gaps and sources
+ok 6 - chart points retain time gaps and sources
+  ---
+  duration_ms: 0.251526
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 169.051354

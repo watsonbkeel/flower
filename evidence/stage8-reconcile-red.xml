@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.522" timestamp="2026-09-13T16:55:50.236245+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_reconciliation" name="test_late_verified_result_is_acknowledged_without_rewriting_timeout" time="0.294"><failure message="assert 422 == 200&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fcd69f6dbe0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTE1NTB9.klHgEi352lzKWYd6xbrAkk7Zd8KtqgGeegUJaca_31A'}, 'device_id': 'cac576bc-be52-49c8-8b1c-bf73b96375c7', ...}
+
+    def test_late_verified_result_is_acknowledged_without_rewriting_timeout(system):
+        cid, payload = completed_late(system)
+        url = f'/api/v1/device/commands/{cid}/result'
+        for _ in range(2):
+            response = system['client'].post(url, headers=system['device_headers'], json=payload)
+&gt;           assert response.status_code == 200
+E           assert 422 == 200
+E            +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+backend/tests/test_reconciliation.py:30: AssertionError</failure></testcase><testcase classname="backend.tests.test_reconciliation" name="test_receipt_reconciliation_verifies_command_pulses_and_time" time="0.159"><failure message="assert 422 == 200&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fcd69266e90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTE1NTB9.WdrI9RDXOuivL6HT1GEI3p9Xxz48vFUGqMufDD024rE'}, 'device_id': '628e730a-4695-4dd4-8633-45133331e0df', ...}
+
+    def test_receipt_reconciliation_verifies_command_pulses_and_time(system):
+        cid, payload = completed_late(system)
+        invalid = payload | {'actual_ml': 0}
+        response = system['client'].post('/api/v1/device/quota/reconcile', headers=system['device_headers'],
+            json={'used_24h_ml': 20, 'receipts': [{'command_id': cid, 'result': invalid}]})
+&gt;       assert response.status_code == 200
+E       assert 422 == 200
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+backend/tests/test_reconciliation.py:43: AssertionError</failure></testcase></testsuite></testsuites>

@@ -73,7 +73,6 @@ def main():
     }
     if args.inspect_images:
         validate_manifest(manifest)
-    (release / "release.json").write_text(json.dumps(manifest, indent=2))
     image_env = (
         "".join(
             f"{key}={images[name]['id']}\n"
@@ -83,6 +82,10 @@ def main():
         else ""
     )
     (release / "release.env").write_text("IMAGE_TAG=" + sha + "\n" + image_env)
+    manifest["files"]["release.env"] = hashlib.sha256(
+        (release / "release.env").read_bytes()
+    ).hexdigest()
+    (release / "release.json").write_text(json.dumps(manifest, indent=2))
     print(release)
 
 

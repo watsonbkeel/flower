@@ -25,4 +25,8 @@ def alert(db, device, code, message, *, plant_id=None, hours=6):
         suggestion="请检查设备状态与相关配置",
     )
     db.add(item)
+    db.flush()
+    from flower.services.jobs import enqueue_job
+
+    enqueue_job(db, "alert_notification", "alert", item.id, item.user_id, "notify:" + item.id)
     return item

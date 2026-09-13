@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.224" timestamp="2026-09-13T16:58:31.758206+08:00" hostname="VM-0-13-debian"><testcase classname="pi-agent.tests.test_reconciliation" name="test_provisional_reconcile_requires_identical_durable_receipt" time="0.078"><failure message="AttributeError: 'Ledger' object has no attribute 'reconcile_receipt'">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-34/test_provisional_reconcile_req0')
+
+    def test_provisional_reconcile_requires_identical_durable_receipt(tmp_path):
+        executor, cmd, pump, clock, states, ledger = setup_executor(tmp_path)
+        result = executor.execute(cmd)
+        with ledger.connection:
+            ledger.connection.execute("UPDATE water_ledger SET state='provisional',quota_ml=reserved_ml")
+        forged = {'command_id': cmd.id, 'result': result | {'actual_ml': 0}}
+        with pytest.raises(ValueError):
+&gt;           ledger.reconcile_receipt(forged, NOW + timedelta(hours=1))
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'Ledger' object has no attribute 'reconcile_receipt'
+
+pi-agent/tests/test_reconciliation.py:15: AttributeError</failure></testcase><testcase classname="pi-agent.tests.test_reconciliation" name="test_no_receipt_cannot_release_quota" time="0.002"><failure message="AttributeError: 'Ledger' object has no attribute 'reconcile_receipt'">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-34/test_no_receipt_cannot_release0')
+
+    def test_no_receipt_cannot_release_quota(tmp_path):
+        executor, cmd, pump, clock, states, ledger = setup_executor(tmp_path)
+        ledger.reserve(cmd.id, cmd.source, 20, NOW, 'boot', 0, limit_ml=120, interval_hours=6)
+        ledger.provisional(cmd.id)
+        with pytest.raises(ValueError):
+&gt;           ledger.reconcile_receipt({'command_id': cmd.id, 'result': {'actual_ml': 0}}, NOW)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'Ledger' object has no attribute 'reconcile_receipt'
+
+pi-agent/tests/test_reconciliation.py:27: AttributeError</failure></testcase></testsuite></testsuites>

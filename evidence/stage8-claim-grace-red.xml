@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.146" timestamp="2026-09-13T17:07:31.451700+08:00" hostname="VM-0-13-debian"><testcase classname="pi-agent.tests.test_executor" name="test_already_claimed_command_can_start_after_claim_deadline" time="0.003"><failure message="pydantic_core._pydantic_core.ValidationError: 2 validation errors for DispenseCommand&#10;claimed_at&#10;  Extra inputs are not permitted [type=extra_forbidden, input_value=datetime.datetime(2026, 9...o=datetime.timezone.utc), input_type=datetime]&#10;    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden&#10;start_grace_sec&#10;  Extra inputs are not permitted [type=extra_forbidden, input_value=30, input_type=int]&#10;    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_already_claimed_command_c0')
+
+    def test_already_claimed_command_can_start_after_claim_deadline(tmp_path):
+&gt;       executor, cmd, pump, clock, states, ledger = setup_executor(tmp_path,
+            claim_deadline_at=NOW - timedelta(seconds=1), claimed_at=NOW - timedelta(seconds=5))
+
+pi-agent/tests/test_executor.py:160:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_already_claimed_command_c0')
+changes = {'claim_deadline_at': datetime.datetime(2026, 9, 12, 23, 59, 59, tzinfo=datetime.timezone.utc), 'claimed_at': datetime.datetime(2026, 9, 12, 23, 59, 55, tzinfo=datetime.timezone.utc)}
+clock = &lt;test_executor.Clock object at 0x7fdad73d01a0&gt;
+pump = &lt;flower_pi.actuators.pump.MockPump object at 0x7fdad73d0050&gt;
+state = DeviceState(operating_mode='FULL', activity='IDLE', fault_codes=(), water_level_ok=True, soil_pct=20, time_trusted=True, calibration_valid=True, profile_valid=True)
+ledger = &lt;flower_pi.storage.ledger.Ledger object at 0x7fdad73d0590&gt;
+calibration = Calibration(flow_ml_sec=3.0, afterdrip_mean_ml=1.0, afterdrip_max_ml=1.0, min_run_sec=1.0, adc_dry=20000.0, adc_wet=10000.0, insert_depth_mark='4cm', calibrated_at=datetime.datetime(2026, 9, 13, 0, 0, tzinfo=datetime.timezone.utc))
+executor = &lt;flower_pi.commands.executor.Executor object at 0x7fdad73d06e0&gt;
+
+    def setup_executor(tmp_path, **changes):
+        clock = Clock()
+        pump = MockPump()
+        state = DeviceState(
+            operating_mode="FULL",
+            activity="IDLE",
+            water_level_ok=True,
+            soil_pct=20,
+            time_trusted=True,
+            calibration_valid=True,
+            profile_valid=True,
+            fault_codes=(),
+        )
+        states = [state]
+        ledger = Ledger(tmp_path / "state.db")
+        calibration = validate_measurements([30, 30, 30], [1, 1, 1], 1, 20000, 10000, "4cm", NOW)
+        executor = Executor("device1", pump, ledger, lambda: states[0], calibration, clock)
+&gt;       command = DispenseCommand(
+            **(
+                dict(
+                    id="c1",
+                    device_id="device1",
+                    source="cloud_auto",
+                    run_mode="real",
+                    target_ml=20,
+                    pulse_ml=10,
+                    max_pulses=2,
+                    max_continuous_sec=10,
+                    afterdrip_settle_sec=30,
+                    absorb_wait_sec=300,
+                    session_max_duration_sec=900,
+                    claim_deadline_at=NOW + timedelta(seconds=60),
+                    claimed_at=NOW,
+                    start_grace_sec=30,
+                    stop_soil_pct=40,
+                )
+                | changes
+            )
+        )
+E       pydantic_core._pydantic_core.ValidationError: 2 validation errors for DispenseCommand
+E       claimed_at
+E         Extra inputs are not permitted [type=extra_forbidden, input_value=datetime.datetime(2026, 9...o=datetime.timezone.utc), input_type=datetime]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+E       start_grace_sec
+E         Extra inputs are not permitted [type=extra_forbidden, input_value=30, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+pi-agent/tests/test_executor.py:48: ValidationError</failure></testcase></testsuite></testsuites>

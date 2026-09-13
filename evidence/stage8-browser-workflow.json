@@ -1,0 +1,9 @@
+{
+  "source_type": "mock",
+  "pending": "PASS",
+  "succeeded": "PASS",
+  "care_confirmation": "PASS",
+  "memory_rule": "PASS",
+  "auto_switch": "PASS",
+  "errors": []
+}

@@ -22,6 +22,30 @@ from flower_pi.state import DeviceState, ModeTracker
 from flower_pi.storage.ledger import Ledger
 
 
+def air_telemetry(air, source_type):
+    age = (
+        (datetime.now(timezone.utc) - air.observed_at).total_seconds()
+        if air and air.observed_at
+        else None
+    )
+    valid = bool(
+        air
+        and air.status == "READY"
+        and air.source_type == source_type
+        and age is not None
+        and 0 <= age <= 300
+    )
+    return {
+        "temperature_c": air.temperature_c if valid else None,
+        "air_humidity": air.humidity_pct if valid else None,
+        "sensor_health": {
+            "air_source_type": air.source_type if air else None,
+            "air_provider": air.provider if air else None,
+            "air_age_sec": age,
+        },
+    }
+
+
 class SensorLoop:
     def __init__(self, settings, calibration, pump, clock):
         self.settings, self.calibration, self.pump, self.clock = settings, calibration, pump, clock
@@ -34,6 +58,8 @@ class SensorLoop:
         self.water_at = 0
         self.air = None
         self.threads = []
+        self.execution_activity = lambda: "IDLE"
+        self.policy_live = lambda: False
 
     def spawn(self, target):
         thread = threading.Thread(target=target, daemon=True)
@@ -99,6 +125,10 @@ class SensorLoop:
         now = time.monotonic()
         return replace(
             self.state,
+            activity=self.execution_activity()
+            if self.execution_activity() != "IDLE"
+            else self.state.activity,
+            profile_valid=self.policy_live(),
             water_level_ok=self.water and now - self.water_at < 2,
             soil_pct=self.soil if now - self.soil_at < 30 else None,
             time_trusted=self.clock.trusted(),
@@ -119,10 +149,29 @@ def decode_command(data):
                 "source",
                 "run_mode",
                 "claim_deadline_at",
+                "claimed_at",
+                "start_grace_sec",
                 "session_max_duration_sec",
             )
         },
     )
+
+
+def refresh_policy(client, ledger):
+    import httpx
+
+    try:
+        received = client.request("GET", "/fallback-policy")
+    except httpx.HTTPStatusError as error:
+        if error.response.status_code == 404:
+            ledger.set_value("fallback", {})
+            return None
+        raise
+    candidate = Policy.model_validate(received["policy"])
+    candidate.verify(received["policy_hash"], ledger.value("policy_version", 0))
+    ledger.set_value("fallback", received)
+    ledger.set_value("policy_version", candidate.policy_version)
+    return candidate
 
 
 def main():
@@ -156,6 +205,7 @@ def main():
         interval_hours=settings.pump_min_interval_hours,
         boot_id=boot_id,
     )
+    sensors.execution_activity = lambda: executor.activity
 
     def stop(*_):
         executor.stop()
@@ -167,7 +217,6 @@ def main():
     prior_cloud = ledger.value("last_cloud_utc")
     if prior_cloud and clock.trusted():
         last_cloud = clock.monotonic() - max(0, clock.utcnow().timestamp() - prior_cloud)
-    next_telemetry = 0
     next_policy = 0
     policy = None
     cached = ledger.value("fallback")
@@ -177,6 +226,49 @@ def main():
             policy.verify(cached["policy_hash"], ledger.value("policy_version", 0))
         except ValueError:
             policy = None
+
+    def policy_live():
+        return bool(
+            policy
+            and clock.trusted()
+            and policy.generated_at <= clock.utcnow() < policy.valid_until
+        )
+
+    sensors.policy_live = policy_live
+
+    def connected():
+        nonlocal last_cloud
+        last_cloud = clock.monotonic()
+
+    def telemetry_sample():
+        current = sensors.snapshot()
+        mode = tracker.update(
+            current,
+            now_mono=clock.monotonic(),
+            cloud_age=clock.monotonic() - last_cloud,
+            policy_valid=policy_live(),
+        )
+        sensors.state = replace(sensors.state, operating_mode=mode)
+        return {
+            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "soil_moisture": current.soil_pct,
+            "soil_raw": sensors.raw,
+            **air_telemetry(sensors.air, "real" if settings.hardware_mode == "real" else "mock"),
+            "water_level_ok": current.water_level_ok,
+            "operating_mode": mode,
+            "activity": current.activity,
+            "fault_codes": list(current.fault_codes),
+            "time_trusted": current.time_trusted,
+            "pump_commanded_on": pump.commanded_on,
+            "source_type": "real" if settings.hardware_mode == "real" else "mock",
+            "firmware_version": "2.2.2",
+            "spec_version": "2.2.2",
+        }
+
+    from flower_pi.telemetry import TelemetryReporter
+
+    reporter = TelemetryReporter(settings, sensors.stop, telemetry_sample, connected)
+    reporter.start()
     try:
         while not sensors.stop.is_set():
             now_mono = clock.monotonic()
@@ -209,41 +301,13 @@ def main():
             sensors.state = replace(sensors.state, operating_mode=mode, fault_codes=tuple(faults))
             if trusted:
                 ledger.recover(now)
-            if now_mono >= next_telemetry:
-                current = sensors.snapshot()
-                key = str(uuid4())
-                payload = {
-                    "event_id": key,
-                    "occurred_at": now.isoformat(),
-                    "soil_moisture": current.soil_pct,
-                    "soil_raw": sensors.raw,
-                    "temperature_c": sensors.air.temperature_c if sensors.air else None,
-                    "air_humidity": sensors.air.humidity_pct if sensors.air else None,
-                    "water_level_ok": current.water_level_ok,
-                    "operating_mode": mode,
-                    "activity": current.activity,
-                    "fault_codes": faults,
-                    "time_trusted": trusted,
-                    "used_24h_ml": ledger.used(now) if trusted else 120,
-                    "pump_commanded_on": pump.commanded_on,
-                    "source_type": "real" if settings.hardware_mode == "real" else "mock",
-                    "firmware_version": "development",
-                    "spec_version": "2.2.2",
-                }
-                ledger.enqueue(key, "/telemetry", payload, now)
-                next_telemetry = now_mono + settings.telemetry_interval_sec
             try:
                 for pending in ledger.pending():
                     client.request("POST", pending["route"], json=json.loads(pending["payload"]))
                     ledger.acknowledge(pending["id"])
                 if now_mono >= next_policy:
                     try:
-                        received = client.request("GET", "/fallback-policy")
-                        candidate = Policy.model_validate(received["policy"])
-                        candidate.verify(received["policy_hash"], ledger.value("policy_version", 0))
-                        ledger.set_value("fallback", received)
-                        ledger.set_value("policy_version", candidate.policy_version)
-                        policy = candidate
+                        policy = refresh_policy(client, ledger)
                     except Exception:
                         pass
                     if calibration:
@@ -252,8 +316,12 @@ def main():
                         )
                     if trusted:
                         quota = client.request(
-                            "POST", "/quota/reconcile", json={"used_24h_ml": ledger.used(now)}
+                            "POST",
+                            "/quota/reconcile",
+                            json={"used_24h_ml": ledger.used(now), "receipts": ledger.receipts()},
                         )
+                        for receipt in quota.get("verified_receipts", []):
+                            ledger.reconcile_receipt(receipt, now)
                         ledger.reconcile_used(quota["verified_cloud_used"], now)
                     next_policy = now_mono + 60
                 claimed = client.request("POST", "/commands/claim")["command"]
@@ -329,7 +397,11 @@ def main():
                                 {
                                     "event_id": command.id,
                                     "event_type": "local_fallback",
-                                    "event_data": result,
+                                    "event_data": {
+                                        "result": result,
+                                        "reserved_ml": command.target_ml,
+                                        "policy_version": policy.policy_version,
+                                    },
                                     "human_readable": "离线保守补水 " + result["status"],
                                     "source_type": "real"
                                     if settings.hardware_mode == "real"
@@ -344,6 +416,7 @@ def main():
     finally:
         pump.off()
         sensors.stop.set()
+        reporter.join(timeout=20)
         client.close()
         ledger.close()
 

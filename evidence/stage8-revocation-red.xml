@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.077" timestamp="2026-09-13T17:09:49.826085+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_pi_protocol" name="test_cloud_policy_revocation_clears_cached_fallback" time="0.002"><failure message="ImportError: cannot import name 'refresh_policy' from 'flower_pi.main' (/root/flower/pi-agent/flower_pi/main.py)">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-43/test_cloud_policy_revocation_c0')
+
+    def test_cloud_policy_revocation_clears_cached_fallback(tmp_path):
+&gt;       from flower_pi.main import refresh_policy
+E       ImportError: cannot import name 'refresh_policy' from 'flower_pi.main' (/root/flower/pi-agent/flower_pi/main.py)
+
+backend/tests/test_pi_protocol.py:42: ImportError</failure></testcase></testsuite></testsuites>

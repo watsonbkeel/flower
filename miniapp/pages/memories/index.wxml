@@ -1,6 +1,23 @@
-<view class="page"><view class="title">家人的记忆</view><view class="error" wx:if="{{error}}">{{error}}</view>
-<view wx:for="{{items}}" wx:key="id"><button class="button secondary" data-id="{{item.id}}" bindtap="edit">编辑：{{item.title}}</button></view>
-<image wx:if="{{photoUrl}}" class="photo" src="{{photoUrl}}" mode="aspectFit"/>
-<button class="button secondary" bindtap="choosePhoto">选择记忆照片</button><view class="muted">{{jobText}}</view>
-<view class="item" wx:for="{{items}}" wx:key="id"><view class="name">{{item.title}}</view><view>{{item.story}}</view><view class="notice">{{item.original_experience}}</view><block wx:if="{{item.structured_rule}}"><view class="muted">{{item.structured_rule.preferred_windows}} · {{item.structured_rule.watering_style}}</view><view class="row"><text>确认并启用经验</text><switch checked="{{item.rule_enabled}}" data-id="{{item.id}}" color="#246b4b" bindchange="toggle"/></view><view class="muted">真实生效 {{item.applied_count}} 次</view></block><button wx:else class="button secondary" data-id="{{item.id}}" bindtap="structure">整理经验</button></view>
-<view class="section"><view class="name">保存记忆</view><view class="field"><text class="label">标题</text><input value="{{title}}" data-field="title" bindinput="field"/></view><view class="field"><text class="label">故事</text><textarea value="{{story}}" data-field="story" bindinput="field"/></view><view class="field"><text class="label">原始养护经验</text><textarea value="{{experience}}" data-field="experience" bindinput="field"/></view><button class="button" disabled="{{!title || busy}}" bindtap="save">保存记忆</button></view></view>
+<view class="page">
+  <view class="title">家人的记忆</view><view class="error" wx:if="{{error}}">{{error}}</view>
+  <view class="item" wx:for="{{items}}" wx:key="id">
+    <view class="row"><view class="name">{{item.title}}</view><button class="button secondary" data-id="{{item.id}}" bindtap="edit">编辑</button></view>
+    <image wx:if="{{item.photoUrl}}" class="photo" src="{{item.photoUrl}}" mode="aspectFit"/>
+    <view>{{item.story}}</view><view class="notice">{{item.original_experience}}</view>
+    <block wx:if="{{item.structured_rule}}">
+      <view class="muted">{{item.structured_rule.preferred_windows}} · {{item.structured_rule.watering_style}}</view>
+      <view class="row"><text>确认并启用经验</text><switch checked="{{item.rule_enabled}}" data-id="{{item.id}}" color="#246b4b" bindchange="toggle"/></view>
+      <view class="muted">真实生效 {{item.applied_count}} 次</view>
+    </block>
+    <button wx:else class="button secondary" data-id="{{item.id}}" bindtap="structure">整理经验</button>
+  </view>
+  <view class="section"><view class="name">{{editId ? '编辑记忆' : '保存记忆'}}</view>
+    <view class="field"><text class="label">标题</text><input value="{{title}}" data-field="title" bindinput="field"/></view>
+    <view class="field"><text class="label">故事</text><textarea value="{{story}}" data-field="story" bindinput="field"/></view>
+    <view class="field"><text class="label">原始养护经验</text><textarea value="{{experience}}" data-field="experience" bindinput="field"/></view>
+    <image wx:if="{{photoUrl}}" class="photo" src="{{photoUrl}}" mode="aspectFit"/>
+    <button class="button secondary" bindtap="choosePhoto">选择记忆照片</button>
+    <button class="button" disabled="{{!title || busy}}" bindtap="save">保存记忆</button>
+    <view class="muted">{{jobText}}</view>
+  </view>
+</view>

@@ -1,0 +1,11 @@
+{
+  "spec_version": "2.2.2",
+  "spec_sha256": "4481d48605aec47660d2cdefb7a004ed2169bb8531302ecdf803c3c12718cf95",
+  "runtime_secret_leaks": [],
+  "python_tests": 149,
+  "failures": 0,
+  "errors": 0,
+  "production_audit_repeated": false,
+  "production_deployment": "NOT_RUN",
+  "physical_acceptance": "BLOCKED"
+}

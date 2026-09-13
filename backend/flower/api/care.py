@@ -111,6 +111,11 @@ def owned_memory(db, memory_id, user_id):
 def memories(user=Depends(require_user), db=Depends(get_db)):
     return [
         serialize(m)
+        | {
+            "photo_id": db.scalar(select(PlantImage.id).where(PlantImage.file_path == m.photo_path))
+            if m.photo_path
+            else None
+        }
         for m in db.scalars(
             select(Memory).where(Memory.user_id == user.id).order_by(Memory.created_at.desc())
         )

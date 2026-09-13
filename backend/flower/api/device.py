@@ -190,6 +190,35 @@ def progress(
 def result(command_id: UUID, data: ResultInput, device=Depends(require_device), db=Depends(get_db)):
     cmd = device_command(db, device, command_id)
     payload = data.model_dump(mode="json")
+    from flower.services.reconciliation import verify_receipt
+
+    late = cmd.status == "timed_out" or (
+        cmd.status == "executing" and cmd.session_deadline_at <= utcnow()
+    )
+    if late:
+        previous = (cmd.result or {}).get("late_receipt")
+        if previous is not None:
+            if previous != payload:
+                raise DomainError("RESULT_CONFLICT")
+            return serialize(cmd)
+        if cmd.action == "dispense" and data.actual_ml > cmd.parameters["target_ml"]:
+            raise DomainError("INVALID_SETTLEMENT")
+        verified = verify_receipt(db, cmd, data, utcnow())
+        cmd.status, cmd.finished_at = "timed_out", cmd.finished_at or utcnow()
+        cmd.result = (cmd.result or {}) | {"late_receipt": payload, "receipt_verified": verified}
+        db.add(
+            Event(
+                device_id=device.id,
+                plant_id=cmd.plant_id,
+                event_id=f"late:{cmd.id}",
+                event_type="late_command_receipt",
+                event_data={"command_id": cmd.id, "verified": verified},
+                human_readable="迟到回执已核验" if verified else "迟到回执待核验，保留预扣额度",
+                source_type=cmd.source_type,
+                occurred_at=utcnow(),
+            )
+        )
+        return serialize(cmd)
     if cmd.status not in {"claimed", "executing"}:
         if cmd.result == payload:
             return serialize(cmd)
@@ -262,6 +291,61 @@ def events(data: EventBatch, device=Depends(require_device), db=Depends(get_db))
         if not db.scalar(
             select(Event.id).where(Event.device_id == device.id, Event.event_id == item.event_id)
         ):
+            if item.event_type == "local_fallback":
+                from flower.schemas import FallbackReceipt
+
+                try:
+                    receipt = FallbackReceipt.model_validate(item.event_data)
+                except ValueError:
+                    raise DomainError("INVALID_FALLBACK_RECEIPT", status=422) from None
+                policy = db.scalar(
+                    select(FallbackPolicy).where(
+                        FallbackPolicy.device_id == device.id,
+                        FallbackPolicy.policy_version == receipt.policy_version,
+                        FallbackPolicy.valid_from <= item.occurred_at,
+                        FallbackPolicy.valid_until > item.occurred_at,
+                    )
+                )
+                data_result = receipt.result
+                if (
+                    not policy
+                    or item.occurred_at > utcnow() + timedelta(seconds=5)
+                    or receipt.reserved_ml != policy.policy["pulse_ml"]
+                    or data_result.actual_ml > receipt.reserved_ml
+                ):
+                    raise DomainError("UNVERIFIED_FALLBACK_RECEIPT")
+                successful = data_result.status == "succeeded" and not data_result.provisional
+                if successful and (
+                    data_result.finished_at is None
+                    or not item.occurred_at <= data_result.finished_at <= utcnow()
+                    or len(data_result.pulses) > 1
+                    or abs(sum(p.estimated_ml for p in data_result.pulses) - data_result.actual_ml)
+                    > 0.001
+                    or any(
+                        not item.occurred_at <= p.finished_at <= data_result.finished_at
+                        for p in data_result.pulses
+                    )
+                ):
+                    raise DomainError("UNVERIFIED_FALLBACK_RECEIPT")
+                db.add(
+                    WateringSession(
+                        local_id=item.event_id,
+                        device_id=device.id,
+                        plant_id=policy.plant_id,
+                        source="local_fallback",
+                        source_type=device.source_type,
+                        status="final" if successful else "provisional",
+                        reserved_ml=receipt.reserved_ml,
+                        actual_ml=data_result.actual_ml,
+                        quota_ml=data_result.actual_ml
+                        if successful
+                        else receipt.reserved_ml
+                        if data_result.provisional
+                        else 0,
+                        occurred_at=item.occurred_at,
+                        pulse_details=[p.model_dump(mode="json") for p in data_result.pulses],
+                    )
+                )
             db.add(Event(device_id=device.id, plant_id=plant_id, **item.model_dump()))
         accepted.append(item.event_id)
     return {"accepted": accepted}
@@ -294,6 +378,18 @@ def fallback(device=Depends(require_device), db=Depends(get_db)):
 @router.post("/quota/reconcile")
 def reconcile(data: QuotaInput, device=Depends(require_device), db=Depends(get_db)):
     db.refresh(device, with_for_update=True)
+    from flower.services.reconciliation import verify_receipt
+
+    verified = []
+    for receipt in data.receipts:
+        cmd = db.scalar(
+            select(Command)
+            .where(Command.id == str(receipt.command_id), Command.device_id == device.id)
+            .with_for_update()
+        )
+        if cmd and verify_receipt(db, cmd, receipt.result, utcnow()):
+            verified.append(receipt.model_dump(mode="json"))
+    db.flush()
     cloud_used = quota_used(db, device.id, utcnow())
     divergence = abs(cloud_used - data.used_24h_ml) > 0.01
     if divergence:
@@ -306,4 +402,5 @@ def reconcile(data: QuotaInput, device=Depends(require_device), db=Depends(get_d
         "effective_used": max(cloud_used, data.used_24h_ml),
         "divergence": divergence,
         "observed_at": utcnow().isoformat(),
+        "verified_receipts": verified,
     }

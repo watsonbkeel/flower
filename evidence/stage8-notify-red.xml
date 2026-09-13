@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.311" timestamp="2026-09-13T17:15:44.241379+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_notifications" name="test_deduplicated_alert_queues_one_mock_notification" time="0.235"><failure message="AssertionError: assert False&#10; +  where False = run_once()&#10; +    where run_once = &lt;flower.worker.Worker object at 0x7f3e0a4fe120&gt;.run_once&#10; +      where &lt;flower.worker.Worker object at 0x7f3e0a4fe120&gt; = Worker(sessionmaker(class_='Session', bind=Engine(sqlite:////tmp/pytest-of-root/pytest-48/test_deduplicated_alert_queues0/test.db), autoflush=True, expire_on_commit=False), Settings(app_env='test', spec_version='2.2.2', software_version='development', app_base_url='http://127.0.0.1:18082', ..., provider_mode='mock', provider_base_url='', provider_api_key='', provider_timeout_sec=15.0, provider_daily_limit=100))&#10; +        where sessionmaker(class_='Session', bind=Engine(sqlite:////tmp/pytest-of-root/pytest-48/test_deduplicated_alert_queues0/test.db), autoflush=True, expire_on_commit=False) = &lt;starlette.datastructures.State object at 0x7f3e0af6ba10&gt;.sessions&#10; +          where &lt;starlette.datastructures.State object at 0x7f3e0af6ba10&gt; = &lt;fastapi.applications.FastAPI object at 0x7f3e0af6b620&gt;.state">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f3e0af6b620&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTI3NDR9.5sdnCAdmW7iFfsYThFGIgCnDaviqeuTNSQHDXPsDc9Q'}, 'device_id': '48770d4c-80c4-4c4a-9a14-b2eec83cb280', ...}
+
+    def test_deduplicated_alert_queues_one_mock_notification(system):
+        with system['app'].state.sessions.begin() as db:
+            device = db.get(Device, system['device_id'])
+            first = alert(db, device, 'LOW_WATER', 'Mock low water')
+            second = alert(db, device, 'LOW_WATER', 'Mock low water')
+            assert first.id == second.id
+&gt;       assert Worker(system['app'].state.sessions, system['settings']).run_once()
+E       AssertionError: assert False
+E        +  where False = run_once()
+E        +    where run_once = &lt;flower.worker.Worker object at 0x7f3e0a4fe120&gt;.run_once
+E        +      where &lt;flower.worker.Worker object at 0x7f3e0a4fe120&gt; = Worker(sessionmaker(class_='Session', bind=Engine(sqlite:////tmp/pytest-of-root/pytest-48/test_deduplicated_alert_queues0/test.db), autoflush=True, expire_on_commit=False), Settings(app_env='test', spec_version='2.2.2', software_version='development', app_base_url='http://127.0.0.1:18082', ..., provider_mode='mock', provider_base_url='', provider_api_key='', provider_timeout_sec=15.0, provider_daily_limit=100))
+E        +        where sessionmaker(class_='Session', bind=Engine(sqlite:////tmp/pytest-of-root/pytest-48/test_deduplicated_alert_queues0/test.db), autoflush=True, expire_on_commit=False) = &lt;starlette.datastructures.State object at 0x7f3e0af6ba10&gt;.sessions
+E        +          where &lt;starlette.datastructures.State object at 0x7f3e0af6ba10&gt; = &lt;fastapi.applications.FastAPI object at 0x7f3e0af6b620&gt;.state
+
+backend/tests/test_notifications.py:13: AssertionError</failure></testcase></testsuite></testsuites>

@@ -60,6 +60,8 @@ def setup_executor(tmp_path, **changes):
                 absorb_wait_sec=300,
                 session_max_duration_sec=900,
                 claim_deadline_at=NOW + timedelta(seconds=60),
+                claimed_at=NOW,
+                start_grace_sec=30,
                 stop_soil_pct=40,
             )
             | changes
@@ -136,7 +138,7 @@ def test_closed_loop_stops_after_target_and_reserves_before_open(tmp_path):
     [
         {"device_id": "other"},
         {"pulse_ml": 2},
-        {"claim_deadline_at": NOW - timedelta(seconds=1)},
+        {"claimed_at": NOW - timedelta(seconds=31)},
         {"source": "maintenance_test"},
     ],
 )
@@ -152,3 +154,44 @@ def test_low_water_twenty_commands_no_starts(tmp_path):
     for _ in range(20):
         assert executor.execute(cmd)["status"] == "failed"
     assert pump.starts == 0
+
+
+def test_already_claimed_command_can_start_after_claim_deadline(tmp_path):
+    executor, cmd, pump, clock, states, ledger = setup_executor(
+        tmp_path,
+        claim_deadline_at=NOW - timedelta(seconds=1),
+        claimed_at=NOW - timedelta(seconds=5),
+    )
+    assert executor.execute(cmd)["status"] == "succeeded"
+    assert pump.starts == 2
+
+
+def test_fallback_expiry_is_checked_during_pumping(tmp_path):
+    from test_safety import make_policy
+
+    executor, cmd, pump, clock, states, ledger = setup_executor(
+        tmp_path, source="local_fallback", target_ml=10, pulse_ml=10, max_pulses=1
+    )
+    states[0] = replace(states[0], operating_mode="LOCAL_CONSERVATIVE", soil_pct=10)
+    active = make_policy().model_copy(
+        update={
+            "pulse_ml": 10,
+            "max_session_ml": 10,
+            "valid_until": NOW + timedelta(seconds=0.2),
+            "allowed_windows_local": [("00:00", "23:59")],
+        }
+    )
+    result = executor.execute(cmd, policy=active)
+    assert result["status"] == "failed"
+    assert clock.seconds < 1
+    assert not pump.commanded_on
+    assert ledger.used(NOW) == 10
+
+
+def test_execution_reports_watering_during_all_pulses_and_waits(tmp_path):
+    executor, cmd, pump, clock, states, ledger = setup_executor(tmp_path)
+    seen = []
+    clock.callback = lambda: seen.append(executor.activity)
+    assert executor.execute(cmd)["status"] == "succeeded"
+    assert set(seen) == {"WATERING"}
+    assert executor.activity == "IDLE"

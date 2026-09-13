@@ -1,6 +1,7 @@
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
+from zoneinfo import ZoneInfo
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,6 +24,8 @@ class DispenseCommand(BaseModel):
     absorb_wait_sec: float = Field(ge=45)
     session_max_duration_sec: float = Field(gt=0, le=1800)
     claim_deadline_at: datetime
+    claimed_at: datetime | None = None
+    start_grace_sec: int = Field(default=30, ge=1, le=30)
     stop_soil_pct: float = Field(ge=0, le=100)
 
 
@@ -45,6 +48,7 @@ class Executor:
         self.lock = threading.Lock()
         self.cancel = threading.Event()
         self.watchdog = Watchdog(pump)
+        self.activity = "IDLE"
         self.pump.off()
 
     def stop(self):
@@ -62,8 +66,13 @@ class Executor:
             now = self.clock.utcnow()
             if command.device_id != self.device_id or command.claim_deadline_at.tzinfo is None:
                 raise ValueError("COMMAND_OWNERSHIP")
-            if now >= command.claim_deadline_at:
-                raise ValueError("CLAIM_EXPIRED")
+            if command.source != "local_fallback" and (
+                command.claimed_at is None
+                or command.claimed_at.tzinfo is None
+                or now >= command.claimed_at + timedelta(seconds=command.start_grace_sec)
+                or command.claimed_at > now
+            ):
+                raise ValueError("START_GRACE_EXPIRED")
             if command.source == "maintenance_test":
                 raise ValueError("REMOTE_MAINTENANCE_FORBIDDEN")
             policy_valid = False
@@ -112,6 +121,7 @@ class Executor:
                 interval_hours=interval,
             )
             reserved = True
+            self.activity = "WATERING"
             if on_started:
                 on_started()
             deadline = started + command.session_max_duration_sec
@@ -122,7 +132,16 @@ class Executor:
                 if self.clock.monotonic() >= deadline:
                     raise TimeoutError("SESSION_TIMEOUT")
                 state = replace(self.state(), activity="IDLE")
-                permitted = can_dispense(state, command.source, policy_valid=policy_valid)
+                live_policy = policy_valid
+                if command.source == "local_fallback":
+                    current_time = self.clock.utcnow()
+                    local_time = current_time.astimezone(ZoneInfo(policy.timezone)).strftime(
+                        "%H:%M"
+                    )
+                    live_policy = policy.generated_at <= current_time < policy.valid_until and any(
+                        start <= local_time < end for start, end in policy.allowed_windows_local
+                    )
+                permitted = can_dispense(state, command.source, policy_valid=live_policy)
                 if not permitted.allowed:
                     raise ValueError(permitted.reason)
                 if self.watchdog.tripped.is_set():
@@ -159,6 +178,13 @@ class Executor:
                 if on_progress:
                     on_progress(pulses)
                 wait(command.afterdrip_settle_sec + command.absorb_wait_sec)
+            receipt = {
+                "status": "succeeded",
+                "actual_ml": actual,
+                "pulses": pulses,
+                "finished_at": self.clock.utcnow().isoformat(),
+            }
+            self.ledger.set_value("receipt:" + command.id, receipt)
             self.ledger.finish(
                 command.id,
                 actual_ml=actual,
@@ -166,7 +192,7 @@ class Executor:
                 monotonic=self.clock.monotonic(),
                 verified=True,
             )
-            return {"status": "succeeded", "actual_ml": actual, "pulses": pulses}
+            return receipt
         except Exception as exc:
             if reserved:
                 self.ledger.provisional(command.id)
@@ -181,4 +207,5 @@ class Executor:
             }
         finally:
             self.watchdog.disarm()
+            self.activity = "IDLE"
             self.lock.release()

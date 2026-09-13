@@ -1,8 +1,8 @@
 # STATUS.md
 
 - 当前规格：v2.2.2 Server-Integrated
-- 当前 Stage：7
-- 实现状态：IN_PROGRESS
+- 当前 Stage：8（开发与Mock交付已归档）
+- 实现状态：HARD_BLOCKED
 - 架构审计：COMPLETE（只读，2026-09-13）
 - 最近更新：2026-09-13
 
@@ -18,6 +18,9 @@
 - [x] Stage 5：微信登录合约、原生七页面、记忆编辑/照片、任务恢复、鉴权趋势与浏览器Mock预览；128项PostgreSQL测试、6项Node测试通过
 - [x] Stage 6：完整小时幂等聚合、逐字段复核后30天raw清理、365天hourly保留、图片/任务/命令清理及Worker调度；132项累计PostgreSQL测试通过
 - [x] Stage 7开发准备：SHA发布清单、显式migration/无build回滚脚本、Nginx/timer模板、DB+uploads+manifest备份与独立PG恢复；136项累计通过，依赖审计无已知漏洞
+- [x] Stage 8开发验证：独立遥测、执行中策略到期/撤销、启动宽限期、迟到回执、逐命令对账、fallback审计、通知job、离线Mock链路及浏览器操作验证；累计149项PostgreSQL测试通过
+- [x] 原生页面6项Node验证、桌面/手机Playwright截图与命令/养护/记忆工作流验证
+- [x] 最终报告及验收矩阵：`FINAL_IMPLEMENTATION_REPORT.md`
 
 ## 当前进行
 
@@ -26,7 +29,11 @@
 
 ## 下一步
 
-- [ ] Stage 8：运行时故障注入、离线演示、最终验收矩阵；实物与生产仍硬阻塞
+- [ ] 生产授权窗口：Docker/Compose/Nginx/DNS/TLS/备份timer/回滚/共存高峰验证
+- [ ] 微信平台与真实Provider配置、原生DevTools/手机验证
+- [ ] 真实Pi安装、标定、防虹吸、缺水/断网/kill/相机BLE压力及真实遥测
+
+本轮已完成可在开发环境验证的实现，未满足完整GOAL Definition of Done，不标记COMPLETE。解除对应`BLOCKERS.md`事项后按部署/实物手册继续。
 
 ## 开发证据
 
