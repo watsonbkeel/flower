@@ -209,7 +209,9 @@ class TelemetryHourly(Record, Base):
     water_level_ok_ratio: Mapped[float | None] = mapped_column(Float)
     sample_count: Mapped[int] = mapped_column(Integer)
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    __table_args__ = (UniqueConstraint("device_id", "bucket_start", "source_type"),)
+    raw_purged: Mapped[bool] = mapped_column(Boolean, default=False)
+    coverage_seconds: Mapped[float] = mapped_column(Float, default=0)
+    __table_args__ = (UniqueConstraint("device_id", "plant_id", "bucket_start", "source_type"),)
 
 
 class Command(Record, Base):

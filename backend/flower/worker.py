@@ -33,6 +33,22 @@ class Worker:
             return claim_job(db, self.owner, now)
 
     def perform(self, claim):
+        from flower.services.retention import aggregate, cleanup
+
+        with self.sessions.begin() as db:
+            job = owned_job(db, claim["id"], claim["locked_by"], claim["attempt"])
+            if job is None:
+                return False
+            if job.job_type in {"trend_aggregation", "cleanup"}:
+                result = (
+                    aggregate(db, utcnow())
+                    if job.job_type == "trend_aggregation"
+                    else cleanup(db, self.settings, utcnow())
+                )
+                if not complete_job(db, job.id, claim["locked_by"], claim["attempt"], result):
+                    db.rollback()
+                    return False
+                return True
         with self.sessions() as db:
             job = db.get(Job, claim["id"])
             if job.job_type == "plant_recognition":
@@ -161,6 +177,10 @@ def main():
         worker.perform({"id": args.job, "locked_by": args.owner, "attempt": args.attempt})
         return
     while True:
+        from flower.services.retention import schedule
+
+        with sessions.begin() as db:
+            schedule(db, utcnow())
         worker.run_once(isolated=True)
         from flower.services.care import evaluate_plant
 

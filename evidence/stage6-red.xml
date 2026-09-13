@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="0.535" timestamp="2026-09-13T16:33:56.818953+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_retention" name="test_aggregation_idempotent_separates_sources_and_cleanup_checks_values" time="0.227"><failure message="ModuleNotFoundError: No module named 'flower.services.retention'">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f1d3961ef90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTAyMzd9.HCCG6OV9hfl7fvHVJegKWOpzgTsM3FXt-gOhjaK8cg0'}, 'device_id': 'dff13727-e31d-4185-8751-490bd48969ed', ...}
+
+    def test_aggregation_idempotent_separates_sources_and_cleanup_checks_values(system):
+&gt;       from flower.services.retention import aggregate, cleanup
+E       ModuleNotFoundError: No module named 'flower.services.retention'
+
+backend/tests/test_retention.py:21: ModuleNotFoundError</failure></testcase><testcase classname="backend.tests.test_retention" name="test_open_hour_and_retained_raw_never_removed" time="0.116"><failure message="ModuleNotFoundError: No module named 'flower.services.retention'">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f1d38ddcb90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTAyMzd9.aIlW9kXlA3Mo_56nISF2mmUxI-7EA1RPa2vg1A3jW9A'}, 'device_id': '2b834410-551b-4a89-9fa2-1a68309f2fca', ...}
+
+    def test_open_hour_and_retained_raw_never_removed(system):
+&gt;       from flower.services.retention import aggregate, cleanup
+E       ModuleNotFoundError: No module named 'flower.services.retention'
+
+backend/tests/test_retention.py:40: ModuleNotFoundError</failure></testcase><testcase classname="backend.tests.test_retention" name="test_trend_coverage_does_not_count_missing_days" time="0.132"><failure message="assert 143.0 &lt; 3">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f1d3846e5d0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTAyMzd9.qE1bKR1RcMd9RB647Ssa-I1EBwG0IPcVeNWYkM8aNHo'}, 'device_id': '2cfa3089-b5f6-4dd1-abb0-e459c8566ecb', ...}
+
+    def test_trend_coverage_does_not_count_missing_days(system):
+        now = seed_rows(system, 6)
+        with system['app'].state.sessions.begin() as db:
+            db.add(Telemetry(device_id=system['device_id'], plant_id=system['plant_id'],
+                event_id=str(uuid4()), source_type='real', soil_moisture=50,
+                water_level_ok=True, occurred_at=now - timedelta(hours=1)))
+        response = system['client'].get(f"/api/v1/plants/{system['plant_id']}/telemetry/series?range=7d&amp;source_type=real", headers=system['user_headers'])
+        assert response.status_code == 200
+&gt;       assert response.json()['coverage_hours'] &lt; 3
+E       assert 143.0 &lt; 3
+
+backend/tests/test_retention.py:56: AssertionError</failure></testcase></testsuite></testsuites>

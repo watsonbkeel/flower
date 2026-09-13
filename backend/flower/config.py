@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     max_upload_mb: int = Field(default=10, ge=1, le=10)
     min_upload_free_bytes: int = Field(default=1073741824, ge=0)
     image_retention_days: int = 90
-    telemetry_raw_retention_days: int = 30
-    telemetry_hourly_retention_days: int = 365
+    telemetry_raw_retention_days: int = Field(default=30, ge=30)
+    telemetry_hourly_retention_days: int = Field(default=365, ge=365)
     command_claim_ttl_sec: int = Field(default=60, ge=1, le=60)
     command_start_grace_sec: int = Field(default=30, ge=1, le=30)
     session_max_duration_hard_sec: int = Field(default=1800, ge=1, le=1800)
