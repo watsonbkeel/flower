@@ -144,13 +144,12 @@ class Ledger:
 
     def receipts(self):
         rows = self.connection.execute(
-            "SELECT key,value FROM local_values WHERE key LIKE 'receipt:%' ORDER BY key LIMIT 100"
+            """SELECT local_values.key,local_values.value FROM local_values
+            JOIN water_ledger ON water_ledger.command_id = substr(local_values.key, 9)
+            WHERE local_values.key LIKE 'receipt:%' AND water_ledger.source != 'local_fallback'
+            ORDER BY local_values.key LIMIT 100"""
         )
-        return [
-            {"command_id": row["key"][8:], "result": json.loads(row["value"])}
-            for row in rows
-            if self.get(row["key"][8:])["source"] != "local_fallback"
-        ]
+        return [{"command_id": row["key"][8:], "result": json.loads(row["value"])} for row in rows]
 
     def reconcile_receipt(self, receipt, now):
         command_id = receipt["command_id"]

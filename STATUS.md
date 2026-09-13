@@ -19,6 +19,7 @@
 - [x] Stage 6：完整小时幂等聚合、逐字段复核后30天raw清理、365天hourly保留、图片/任务/命令清理及Worker调度；132项累计PostgreSQL测试通过
 - [x] Stage 7开发准备：SHA发布清单、显式migration/无build回滚脚本、Nginx/timer模板、DB+uploads+manifest备份与独立PG恢复；136项累计通过，依赖审计无已知漏洞
 - [x] Stage 8开发验证：独立遥测、执行中策略到期/撤销、启动宽限期、迟到回执、逐命令对账、fallback审计、通知job、离线Mock链路及浏览器操作验证；累计149项PostgreSQL测试通过
+- [x] Stage 8交付复核修复：Pi时钟跳变后稳定重验恢复、fallback回执不阻塞云端对账；累计155项PostgreSQL测试通过
 - [x] 原生页面6项Node验证、桌面/手机Playwright截图与命令/养护/记忆工作流验证
 - [x] 最终报告及验收矩阵：`FINAL_IMPLEMENTATION_REPORT.md`
 
@@ -45,6 +46,8 @@
 - Stage 2已接入Pi常驻循环、云客户端、配置/安装/诊断工具，均未在实物安装。
 - `evidence/stage2-postgres.xml`：86 passed；PostgreSQL使用解包二进制和私有Unix socket，测试结束后关闭和清理，未安装宿主数据库服务。
 - DATA-001真实遥测：BLOCKED_PHYSICAL；Stage 2通过当天未连接Pi，未产生real记录。
+- `evidence/stage8-recovery-audit-red.xml`：修复前6项预期失败；`evidence/stage8-recovery-audit-green.xml`：14项定向测试通过。
+- `evidence/stage8-recovery-postgres.xml`：155 passed，保留1项上游弃用警告。时钟故障为注入测试，没有新增实物验收证据。
 
 ## 已知共享宿主机事实
 

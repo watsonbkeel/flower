@@ -30,3 +30,23 @@ def test_no_receipt_cannot_release_quota(tmp_path):
     with pytest.raises(ValueError):
         ledger.reconcile_receipt({"command_id": cmd.id, "result": {"actual_ml": 0}}, NOW)
     assert ledger.used(NOW) == 20
+
+
+def test_fallback_receipts_do_not_starve_cloud_reconciliation(tmp_path):
+    from flower_pi.storage.ledger import Ledger
+
+    ledger = Ledger(tmp_path / "history.db")
+    for index in range(101):
+        command_id = f"fallback-{index:03}"
+        at = NOW + timedelta(hours=12 * index)
+        ledger.reserve(
+            command_id, "local_fallback", 10, at, "boot", index, limit_ml=120, interval_hours=6
+        )
+        ledger.finish(command_id, actual_ml=10, now=at, monotonic=index, verified=True)
+        ledger.set_value("receipt:" + command_id, {"status": "succeeded", "actual_ml": 10})
+    at = NOW + timedelta(days=60)
+    ledger.reserve("remote", "user_manual", 10, at, "boot", 200, limit_ml=120, interval_hours=6)
+    ledger.set_value("receipt:remote", {"status": "succeeded", "actual_ml": 10})
+    assert [receipt["command_id"] for receipt in ledger.receipts()] == ["remote"]
+    assert ledger.used(at) == 10
+    ledger.close()

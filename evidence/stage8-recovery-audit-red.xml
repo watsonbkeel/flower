@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="8" time="0.247" timestamp="2026-09-13T17:32:41.036355+08:00" hostname="VM-0-13-debian"><testcase classname="pi-agent.tests.test_clock_recovery" name="test_time_jump_latches_untrusted_then_revalidates_without_restart[3600]" time="0.001"><failure message="TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'">jump = 3600
+
+    @pytest.mark.parametrize('jump', [3600, -3600])
+    def test_time_jump_latches_untrusted_then_revalidates_without_restart(jump):
+        source = TimeSource()
+&gt;       clock = source.clock()
+                ^^^^^^^^^^^^^^
+
+pi-agent/tests/test_clock_recovery.py:32:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_clock_recovery.TimeSource object at 0x7efe0ca2fa10&gt;
+
+    def clock(self):
+&gt;       return TrustedClock(self.probe, wall_time=lambda: self.wall,
+                            monotonic_time=lambda: self.mono)
+E       TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'
+
+pi-agent/tests/test_clock_recovery.py:25: TypeError</failure></testcase><testcase classname="pi-agent.tests.test_clock_recovery" name="test_time_jump_latches_untrusted_then_revalidates_without_restart[-3600]" time="0.000"><failure message="TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'">jump = -3600
+
+    @pytest.mark.parametrize('jump', [3600, -3600])
+    def test_time_jump_latches_untrusted_then_revalidates_without_restart(jump):
+        source = TimeSource()
+&gt;       clock = source.clock()
+                ^^^^^^^^^^^^^^
+
+pi-agent/tests/test_clock_recovery.py:32:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_clock_recovery.TimeSource object at 0x7efe0cab0cd0&gt;
+
+    def clock(self):
+&gt;       return TrustedClock(self.probe, wall_time=lambda: self.wall,
+                            monotonic_time=lambda: self.mono)
+E       TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'
+
+pi-agent/tests/test_clock_recovery.py:25: TypeError</failure></testcase><testcase classname="pi-agent.tests.test_clock_recovery" name="test_repeated_jump_restarts_stability_and_ntp_failure_stays_closed" time="0.000"><failure message="TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'">def test_repeated_jump_restarts_stability_and_ntp_failure_stays_closed():
+        source = TimeSource()
+&gt;       clock = source.clock()
+                ^^^^^^^^^^^^^^
+
+pi-agent/tests/test_clock_recovery.py:50:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_clock_recovery.TimeSource object at 0x7efe0d2291d0&gt;
+
+    def clock(self):
+&gt;       return TrustedClock(self.probe, wall_time=lambda: self.wall,
+                            monotonic_time=lambda: self.mono)
+E       TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'
+
+pi-agent/tests/test_clock_recovery.py:25: TypeError</failure></testcase><testcase classname="pi-agent.tests.test_clock_recovery" name="test_jump_during_ntp_probe_cannot_be_reported_trusted" time="0.000"><failure message="TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'">def test_jump_during_ntp_probe_cannot_be_reported_trusted():
+        source = TimeSource()
+        def changing_probe():
+            source.wall += 3600
+            return True
+&gt;       clock = TrustedClock(changing_probe, wall_time=lambda: source.wall,
+                             monotonic_time=lambda: source.mono)
+E       TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'
+
+pi-agent/tests/test_clock_recovery.py:72: TypeError</failure></testcase><testcase classname="pi-agent.tests.test_clock_recovery" name="test_time_recovery_does_not_bypass_mode_recovery_window" time="0.000"><failure message="TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'">def test_time_recovery_does_not_bypass_mode_recovery_window():
+        source = TimeSource()
+&gt;       clock = source.clock()
+                ^^^^^^^^^^^^^^
+
+pi-agent/tests/test_clock_recovery.py:79:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_clock_recovery.TimeSource object at 0x7efe0ca823f0&gt;
+
+    def clock(self):
+&gt;       return TrustedClock(self.probe, wall_time=lambda: self.wall,
+                            monotonic_time=lambda: self.mono)
+E       TypeError: TrustedClock.__init__() got an unexpected keyword argument 'wall_time'
+
+pi-agent/tests/test_clock_recovery.py:25: TypeError</failure></testcase><testcase classname="pi-agent.tests.test_local_reconciliation" name="test_provisional_reconcile_requires_identical_durable_receipt" time="0.068" /><testcase classname="pi-agent.tests.test_local_reconciliation" name="test_no_receipt_cannot_release_quota" time="0.002" /><testcase classname="pi-agent.tests.test_local_reconciliation" name="test_fallback_receipts_do_not_starve_cloud_reconciliation" time="0.017"><failure message="AssertionError: assert [] == ['remote']&#10;  &#10;  Right contains one more item: 'remote'&#10;  Use -v to get more diff">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_fallback_receipts_do_not_0')
+
+    def test_fallback_receipts_do_not_starve_cloud_reconciliation(tmp_path):
+        from flower_pi.storage.ledger import Ledger
+        ledger = Ledger(tmp_path / 'history.db')
+        for index in range(101):
+            command_id = f'fallback-{index:03}'
+            at = NOW + timedelta(hours=12 * index)
+            ledger.reserve(command_id, 'local_fallback', 10, at, 'boot', index,
+                           limit_ml=120, interval_hours=6)
+            ledger.finish(command_id, actual_ml=10, now=at, monotonic=index, verified=True)
+            ledger.set_value('receipt:' + command_id, {'status': 'succeeded', 'actual_ml': 10})
+        at = NOW + timedelta(days=60)
+        ledger.reserve('remote', 'user_manual', 10, at, 'boot', 200, limit_ml=120, interval_hours=6)
+        ledger.set_value('receipt:remote', {'status': 'succeeded', 'actual_ml': 10})
+&gt;       assert [receipt['command_id'] for receipt in ledger.receipts()] == ['remote']
+E       AssertionError: assert [] == ['remote']
+E
+E         Right contains one more item: 'remote'
+E         Use -v to get more diff
+
+pi-agent/tests/test_local_reconciliation.py:48: AssertionError</failure></testcase></testsuite></testsuites>
