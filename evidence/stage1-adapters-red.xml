@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.114" timestamp="2026-09-13T15:22:38.293774+08:00" hostname="VM-0-13-debian"><testcase classname="" name="pi-agent.tests.test_adapters" time="0.000"><error message="collection failure">ImportError while importing test module '/root/flower/pi-agent/tests/test_adapters.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pi-agent/tests/test_adapters.py:8: in &lt;module&gt;
+    from flower_pi.clock import TrustedClock
+E   ModuleNotFoundError: No module named 'flower_pi.clock'</error></testcase></testsuite></testsuites>

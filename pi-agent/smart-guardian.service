@@ -1,0 +1,25 @@
+[Unit]
+Description=Flower v2.2.2 sensor and safety executor
+After=network-online.target time-sync.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=flower-pi
+Group=flower-pi
+SupplementaryGroups=gpio i2c video bluetooth
+WorkingDirectory=/opt/smart-guardian
+EnvironmentFile=/etc/flower-pi.env
+ExecStart=/opt/smart-guardian/.venv/bin/python -m flower_pi.main
+ExecStopPost=/opt/smart-guardian/emergency_pump_off.sh
+Restart=always
+RestartSec=1
+TimeoutStopSec=2
+KillMode=control-group
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/smart-guardian
+
+[Install]
+WantedBy=multi-user.target

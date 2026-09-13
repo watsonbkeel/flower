@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="2" failures="0" skipped="0" tests="2" time="0.155" timestamp="2026-09-13T15:18:04.363716+08:00" hostname="VM-0-13-debian"><testcase classname="" name="pi-agent.tests.test_executor" time="0.000"><error message="collection failure">ImportError while importing test module '/root/flower/pi-agent/tests/test_executor.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pi-agent/tests/test_executor.py:6: in &lt;module&gt;
+    from flower_pi.actuators.pump import MockPump
+E   ModuleNotFoundError: No module named 'flower_pi'</error></testcase><testcase classname="" name="pi-agent.tests.test_safety" time="0.000"><error message="collection failure">ImportError while importing test module '/root/flower/pi-agent/tests/test_safety.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pi-agent/tests/test_safety.py:7: in &lt;module&gt;
+    from flower_pi.calibration import Calibration, validate_measurements
+E   ModuleNotFoundError: No module named 'flower_pi'</error></testcase></testsuite></testsuites>

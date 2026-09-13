@@ -1,0 +1,7 @@
+gpiozero==2.0.1
+adafruit-circuitpython-ads1x15==2.4.4
+adafruit-circuitpython-sht31d==2.3.29
+bleak==1.1.0
+opencv-python-headless==4.12.0.88
+httpx==0.28.1
+pydantic-settings==2.10.1
