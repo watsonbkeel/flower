@@ -1,0 +1,31 @@
+{
+  "source_type": "mock",
+  "report": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "zero_readings": "PASS",
+      "expired": "PASS",
+      "missing": "PASS",
+      "source_label": "PASS",
+      "form_preserved": "PASS",
+      "overflow": "PASS",
+      "errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "zero_readings": "PASS",
+      "expired": "PASS",
+      "missing": "PASS",
+      "source_label": "PASS",
+      "form_preserved": "PASS",
+      "overflow": "PASS",
+      "errors": []
+    }
+  ]
+}

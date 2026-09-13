@@ -26,3 +26,26 @@ test('memory job errors are handled and polling resumes on show', async () => {
   await callback();
   assert.equal(page.data.error, 'offline');
 });
+
+test('native care page exposes weather freshness and source independently of knowledge', async () => {
+  let page;
+  const weather = {temperature_c: 0, rain_next_12h_mm: 0, source_type: 'mock',
+    observed_at: new Date(Date.now() - 60000).toISOString(), valid_until: new Date(Date.now() + 60000).toISOString()};
+  const api = {request: async path => path.endsWith('/status') ? {
+    plant: {id: 'plant-1'}, device: {source_type: 'mock'},
+    care_profile: {profile: {source_type: 'real', weather}}
+  } : {result: null}};
+  vm.runInNewContext(fs.readFileSync('pages/plant/index.js', 'utf8'), {
+    require: path => path.includes('viewmodel') ? require('../utils/viewmodel') : api,
+    Page: value => { page = value; }, getApp: () => ({globalData: {plantId: 'plant-1'}}),
+    wx: {getStorageSync: () => null}
+  });
+  page.setData = values => Object.assign(page.data, values);
+  await page.load();
+  assert.equal(page.data.weather.temperatureText, '0');
+  assert.equal(page.data.weather.sourceLabel, '模拟数据');
+  weather.valid_until = new Date(Date.now() - 1).toISOString();
+  await page.load();
+  assert.equal(page.data.weather.available, false);
+  assert.equal(page.data.weather.rainText, '--');
+});

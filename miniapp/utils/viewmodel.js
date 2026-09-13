@@ -25,6 +25,21 @@
       && !(device.fault_codes || []).some(code => !['BLE_STALE', 'CAMERA_UNAVAILABLE'].includes(code)));
   }
   function faultLabel(code) { return faults[code] || code || '暂无异常'; }
+  function weatherView(weather, expectedSource, now = Date.now()) {
+    const observed = Date.parse(weather && weather.observed_at);
+    const expires = Date.parse(weather && weather.valid_until);
+    let statusText = '当前天气';
+    if (!weather) statusText = '天气暂不可用';
+    else if (!sourceNames[weather.source_type] || weather.source_type !== expectedSource) statusText = '天气来源不匹配';
+    else if (!Number.isFinite(observed) || !Number.isFinite(expires) || observed > now || expires <= observed) statusText = '天气时间异常';
+    else if (expires <= now) statusText = '天气已过期';
+    const available = statusText === '当前天气';
+    return {available, statusText,
+      sourceLabel: sourceNames[weather && weather.source_type] || '暂无来源',
+      temperatureText: available && Number.isFinite(weather.temperature_c) ? String(weather.temperature_c) : '--',
+      rainText: available && Number.isFinite(weather.rain_next_12h_mm) ? String(weather.rain_next_12h_mm) : '--',
+      observedText: Number.isFinite(observed) ? new Date(observed).toLocaleString('zh-CN', {hour12: false}) : ''};
+  }
   function chartSegments(points) {
     const sorted = points.slice().sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at));
     const segments = [];
@@ -44,7 +59,7 @@
       commandText: commandLabel(data.command && data.command.status, data.command && data.command.action),
       soilText: device && Number.isFinite(device.soil_moisture) ? device.soil_moisture.toFixed(0) : '--'};
   }
-  const api = {sourceNames, commandLabel, coverageLabel, canWater, faultLabel, chartSegments, statusView};
+  const api = {sourceNames, commandLabel, coverageLabel, canWater, faultLabel, weatherView, chartSegments, statusView};
   if (typeof module !== 'undefined') module.exports = api;
   else root.FlowerView = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

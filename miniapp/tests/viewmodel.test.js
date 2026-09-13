@@ -28,3 +28,23 @@ test('chart points retain time gaps and sources', () => {
   const segments = view.chartSegments(values);
   assert.equal(segments.length, 2);
 });
+
+test('weather preserves zero readings and distinguishes absent, stale and mismatched data', () => {
+  const now = Date.parse('2026-09-13T08:00:00Z');
+  const weather = {temperature_c: 0, rain_next_12h_mm: 0, source_type: 'mock',
+    observed_at: '2026-09-13T07:00:00Z', valid_until: '2026-09-13T09:00:00Z'};
+  const current = view.weatherView(weather, 'mock', now);
+  assert.equal(current.available, true);
+  assert.equal(current.temperatureText, '0');
+  assert.equal(current.rainText, '0');
+  assert.equal(current.sourceLabel, '模拟数据');
+  for (const value of [null, {...weather, valid_until: '2026-09-13T08:00:00Z'},
+    {...weather, observed_at: '2026-09-13T08:01:00Z'}, {...weather, source_type: 'real'},
+    {...weather, valid_until: 'bad'}]) {
+    const result = view.weatherView(value, 'mock', now);
+    assert.equal(result.available, false);
+    assert.equal(result.rainText, '--');
+    assert.equal(result.temperatureText, '--');
+  }
+  assert.equal(view.weatherView({...weather, temperature_c: null}, 'mock', now).temperatureText, '--');
+});

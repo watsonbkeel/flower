@@ -1,4 +1,5 @@
 const api = require('../../services/api');
+const view = require('../../utils/viewmodel');
 Page({data: {plant: {}, profile: null, candidates: [], selected: -1, commonName: '', scientificName: '', jobText: '', error: '', busy: false},
   onShow() { this.load(); clearInterval(this.timer); this.timer = setInterval(() => this.load(), 2000); },
   onHide() { clearInterval(this.timer); }, onUnload() { clearInterval(this.timer); },
@@ -9,6 +10,7 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, commonName:
       const status = await api.request(`/plants/${pid}/status`);
       const recognition = await api.request(`/plants/${pid}/recognition`);
       this.setData({plant: status.plant, profile: status.care_profile,
+        weather: view.weatherView(status.care_profile && status.care_profile.profile.weather, status.device && status.device.source_type),
         candidates: recognition.result ? recognition.result.candidates : []});
       if (!this.selectionTouched && recognition.default_selection !== undefined && recognition.default_selection !== null) this.setData({selected: recognition.default_selection});
       const jobId = wx.getStorageSync('job:' + pid);

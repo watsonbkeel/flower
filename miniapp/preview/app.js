@@ -18,7 +18,16 @@ async function initialize() {
     const result = await api('/auth/wechat-login', 'POST', {code:'mock-demo'});
     token = result.access_token;
     await render();
-    refreshTimer = setInterval(async () => { if (route() === 'home' && !document.querySelector('dialog[open]')) await render(true); }, 5000);
+    refreshTimer = setInterval(async () => {
+      try {
+        if (route() === 'home' && !document.querySelector('dialog[open]')) await render(true);
+        else if (route() === 'care') {
+          await loadState();
+          const panel = document.querySelector('#local-weather');
+          if (panel) panel.innerHTML = localWeather();
+        }
+      } catch (e) { error(e.message); }
+    }, 5000);
   } catch (e) { error(e.message); }
 }
 async function loadState() {
@@ -73,8 +82,13 @@ async function renderCare() {
   const profile = state.care_profile, p = profile && profile.profile;
   content.innerHTML = title('植物养护卡', state.plant.name) + `<section class="section"><div class="row"><h2>识别与品种确认</h2><button class="secondary" data-action="capture">重新拍照</button></div><form id="species-form">${candidates.map((c,i) => `<label class="candidate"><input type="radio" name="candidate" value="${i}" ${recognition.default_selection === i ? 'checked' : ''}><span>${esc(c.common_name)}<br><small>${esc(c.scientific_name)}</small></span><small>${Math.round(c.confidence * 100)}%</small></label>`).join('')}<div class="form-grid" style="margin-top:20px"><label>手动名称<input name="common_name" value="${esc(state.plant.common_name)}"></label><label>学名<input name="scientific_name" value="${esc(state.plant.scientific_name)}"></label></div><div class="actions"><button type="submit">确认品种</button><button type="button" class="secondary" data-action="research" ${state.plant.recognition_confirmed ? '' : 'disabled'}>生成养护卡</button></div></form><p id="job-status" class="muted"></p></section>` + (p ? `
   <section class="section"><div class="row"><h2>相对土壤湿度目标</h2><span class="badge">${p.source_type === 'real' ? '真实知识来源' : '模拟知识'}</span></div><div class="soil"><strong>${p.soil_target_min_pct}–${p.soil_target_max_pct}</strong><span>%</span></div>${profile.needs_review ? '<p class="warning">来源存在冲突或需要复核，已采用保守参数。</p>' : ''}<button data-action="confirm-care" ${profile.confirmed ? 'disabled' : ''}>${profile.confirmed ? '养护卡已确认' : '确认养护卡'}</button></section>
-  <div class="lower"><section class="section"><h2>园艺资料</h2>${(p.sources || []).map(s => `<div class="source-item"><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)} ↗</a><p class="muted">${esc(s.summary)}</p><small>${esc(V.sourceNames[s.source_type])} · ${esc(when(s.retrieved_at))}</small></div>`).join('')}</section><section class="section"><h2>当地环境</h2><p>${esc(state.plant.city)} · ${esc(state.plant.timezone)}</p><p>未来12小时降雨：${p.weather ? esc(p.weather.rain_next_12h_mm) + ' mm' : '暂不可用'}</p><p class="muted">${p.weather ? esc(V.sourceNames[p.weather.source_type]) : ''}</p><h2 style="margin-top:32px">家庭经验</h2><a href="#memories" class="text-link">查看已确认的记忆规则 →</a></section></div>` : '<p class="empty">养护卡尚未生成</p>');
+  <div class="lower"><section class="section"><h2>园艺资料</h2>${(p.sources || []).map(s => `<div class="source-item"><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)} ↗</a><p class="muted">${esc(s.summary)}</p><small>${esc(V.sourceNames[s.source_type])} · ${esc(when(s.retrieved_at))}</small></div>`).join('')}</section><section class="section" id="local-weather">${localWeather()}</section></div>` : '<p class="empty">养护卡尚未生成</p>');
   document.querySelector('#species-form').onsubmit = async event => { event.preventDefault(); const form = new FormData(event.target); const selected = form.get('candidate'); const candidate = selected !== null ? candidates[Number(selected)] : null; try { await api(`/plants/${plantId}/confirm-species`, 'POST', {common_name:candidate ? candidate.common_name : form.get('common_name'), scientific_name:candidate ? candidate.scientific_name : form.get('scientific_name'), input_method:candidate ? 'recognition' : 'manual', confidence:candidate ? candidate.confidence : null}); await render(); } catch(e) { error(e.message); } };
+}
+function localWeather() {
+  const profile = state.care_profile;
+  const weather = V.weatherView(profile && profile.profile.weather, state.device && state.device.source_type);
+  return `<h2>当地环境</h2><p>${esc(state.plant.city)} · ${esc(state.plant.timezone)}</p><p class="muted">${esc(weather.sourceLabel)} · ${esc(weather.statusText)}</p>${weather.available ? `<p>气温：${esc(weather.temperatureText)} °C</p><p>未来12小时降雨：${esc(weather.rainText)} mm</p>` : ''}${weather.observedText ? `<p class="muted">观测时间：${esc(weather.observedText)}</p>` : ''}<h2 style="margin-top:32px">家庭经验</h2><a href="#memories" class="text-link">查看已确认的记忆规则 →</a>`;
 }
 async function renderTrends() {
   const series = await api(`/plants/${plantId}/telemetry/series?range=${range}&source_type=${source}`);

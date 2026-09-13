@@ -1,0 +1,80 @@
+TAP version 13
+# Subtest: every native template handler exists
+ok 1 - every native template handler exists
+  ---
+  duration_ms: 8.243867
+  type: 'test'
+  ...
+# Subtest: memory job errors are handled and polling resumes on show
+ok 2 - memory job errors are handled and polling resumes on show
+  ---
+  duration_ms: 1.259518
+  type: 'test'
+  ...
+# Subtest: native care page exposes weather freshness and source independently of knowledge
+not ok 3 - native care page exposes weather freshness and source independently of knowledge
+  ---
+  duration_ms: 1.640491
+  type: 'test'
+  location: '/root/flower/miniapp/tests/pages.test.js:30:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'temperatureText')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (/root/flower/miniapp/tests/pages.test.js:45:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pending and claimed never mean watering complete
+ok 4 - pending and claimed never mean watering complete
+  ---
+  duration_ms: 1.007867
+  type: 'test'
+  ...
+# Subtest: data coverage and demo sources stay visible
+ok 5 - data coverage and demo sources stay visible
+  ---
+  duration_ms: 0.296884
+  type: 'test'
+  ...
+# Subtest: uncertain status disables manual watering
+ok 6 - uncertain status disables manual watering
+  ---
+  duration_ms: 0.205996
+  type: 'test'
+  ...
+# Subtest: chart points retain time gaps and sources
+ok 7 - chart points retain time gaps and sources
+  ---
+  duration_ms: 0.254396
+  type: 'test'
+  ...
+# Subtest: weather preserves zero readings and distinguishes absent, stale and mismatched data
+not ok 8 - weather preserves zero readings and distinguishes absent, stale and mismatched data
+  ---
+  duration_ms: 0.347487
+  type: 'test'
+  location: '/root/flower/miniapp/tests/viewmodel.test.js:32:1'
+  failureType: 'testCodeFailure'
+  error: 'view.weatherView is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (/root/flower/miniapp/tests/viewmodel.test.js:36:24)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 6
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 165.10059

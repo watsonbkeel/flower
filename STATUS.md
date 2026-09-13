@@ -22,6 +22,7 @@
 - [x] Stage 8交付复核修复：Pi时钟跳变后稳定重验恢复、fallback回执不阻塞云端对账；累计155项PostgreSQL测试通过
 - [x] Stage 8天气缓存复核：独立Worker刷新过期天气、持久重试、旧上下文结果隔离与降雨输入校验；累计166项PostgreSQL测试通过
 - [x] 原生页面6项Node验证、桌面/手机Playwright截图与命令/养护/记忆工作流验证
+- [x] 天气展示复核：零值、缺失、过期、来源分离及自动刷新保留表单；8项Node测试和桌面/手机Playwright验证通过
 - [x] 最终报告及验收矩阵：`FINAL_IMPLEMENTATION_REPORT.md`
 
 ## 当前进行
