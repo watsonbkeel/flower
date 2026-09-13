@@ -1,0 +1,7 @@
+{
+  "name": "flower-miniapp",
+  "private": true,
+  "version": "2.2.2",
+  "scripts": {"test": "node --test tests/*.test.js"},
+  "devDependencies": {"@playwright/test": "1.63.0", "lucide-static": "0.468.0", "sharp": "0.35.4"}
+}

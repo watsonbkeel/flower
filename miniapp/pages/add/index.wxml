@@ -1,0 +1,10 @@
+<view class="page"><view class="title">添加植物</view><view class="error" wx:if="{{error}}">{{error}}</view>
+<view class="field"><text class="label">植物昵称</text><input value="{{name}}" data-field="name" bindinput="field"/></view>
+<view class="field"><text class="label">设备</text><picker range="{{devices}}" range-key="name" value="{{deviceIndex}}" data-field="deviceIndex" bindchange="picker"><view class="picker">{{devices[deviceIndex].name || '尚未绑定设备'}}</view></picker></view>
+<view class="field"><text class="label">城市</text><input value="{{city}}" data-field="city" bindinput="field"/></view>
+<view class="field"><text class="label">时区</text><input value="{{timezone}}" data-field="timezone" bindinput="field"/></view>
+<view class="field"><text class="label">放置环境</text><picker range="{{placementLabels}}" value="{{placementIndex}}" data-field="placementIndex" bindchange="picker"><view class="picker">{{placementLabels[placementIndex]}}</view></picker></view>
+<view class="field"><text class="label">花盆大小</text><picker range="{{sizeLabels}}" value="{{sizeIndex}}" data-field="sizeIndex" bindchange="picker"><view class="picker">{{sizeLabels[sizeIndex]}}</view></picker></view>
+<view class="field"><text class="label">花盆材质</text><picker range="{{materialLabels}}" value="{{materialIndex}}" data-field="materialIndex" bindchange="picker"><view class="picker">{{materialLabels[materialIndex]}}</view></picker></view>
+<view class="row section"><text>有排水孔</text><switch checked="{{drainage}}" color="#246b4b" bindchange="drainage"/></view>
+<button class="button" loading="{{busy}}" disabled="{{busy || !name || !city}}" bindtap="save">保存植物</button></view>

@@ -140,6 +140,7 @@ def water(
     user=Depends(require_user),
     db=Depends(get_db),
 ):
+    request.app.state.rate_limiter.check("water:" + user.id)
     plant = owned_plant(db, str(plant_id), user.id)
     command = create_command(
         db,
@@ -167,9 +168,56 @@ def status(plant_id: UUID, user=Depends(require_user), db=Depends(get_db)):
         .order_by(Command.created_at.desc())
         .limit(1)
     )
+    from flower.models import Event, WateringSession
+    from flower.schemas import CalibrationInput
+
+    device = db.get(Device, plant.device_id)
+    try:
+        CalibrationInput.model_validate(device.calibration)
+        calibrated = True
+    except ValueError:
+        calibrated = False
+    profile = db.scalar(
+        select(CareProfile)
+        .where(CareProfile.plant_id == plant.id)
+        .order_by(CareProfile.version.desc())
+        .limit(1)
+    )
+    decision = db.scalar(
+        select(Event)
+        .where(Event.plant_id == plant.id, Event.event_type == "decision")
+        .order_by(Event.occurred_at.desc())
+        .limit(1)
+    )
+    last_water = db.scalar(
+        select(WateringSession)
+        .where(WateringSession.plant_id == plant.id, WateringSession.actual_ml > 0)
+        .order_by(WateringSession.occurred_at.desc())
+        .limit(1)
+    )
+    image = (
+        db.scalar(select(PlantImage).where(PlantImage.file_path == plant.photo_path))
+        if plant.photo_path
+        else None
+    )
+    detail = serialize(current) if current else None
+    if detail:
+        detail.update(
+            time_trusted=device.time_trusted,
+            calibration_valid=calibrated,
+            firmware_version=device.firmware_version,
+            last_seen_at=device.last_seen_at,
+        )
+        if not device.last_seen_at or (utcnow() - device.last_seen_at).total_seconds() > 90:
+            detail["operating_mode"] = "SAFE_HOLD"
+            detail["fault_codes"] = list(set(detail["fault_codes"]) | {"CLOUD_OFFLINE"})
     return {
         "plant": serialize(plant),
-        "device": serialize(current) if current else None,
+        "device": detail,
         "command": serialize(latest) if latest else None,
+        "care_profile": serialize(profile) if profile else None,
+        "decision": decision.event_data if decision else None,
+        "last_watering": serialize(last_water) if last_water else None,
+        "photo_id": image.id if image else None,
         "spec_version": "2.2.2",
     }

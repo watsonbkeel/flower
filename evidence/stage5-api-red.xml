@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="4" time="0.733" timestamp="2026-09-13T16:07:52.476385+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_user_api" name="test_mock_login_is_explicit_and_production_never_bypasses" time="0.206"><failure message="assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f0528036e40&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyODg2NzJ9.fEWr8Bge0X9UMU_72oRZsBdpkOd9SJVyRDsIuqxt_0A'}, 'device_id': '701708ba-0dd0-48a3-bbbe-6750441f6bd4', ...}
+
+    def test_mock_login_is_explicit_and_production_never_bypasses(system):
+        response = system["client"].post("/api/v1/auth/wechat-login", json={"code": "mock-owner"})
+&gt;       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+backend/tests/test_user_api.py:7: AssertionError</failure></testcase><testcase classname="backend.tests.test_user_api" name="test_resource_ownership_across_user_routes" time="0.132" /><testcase classname="backend.tests.test_user_api" name="test_alert_center_and_read_status" time="0.116"><failure message="KeyError: 0">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f0526ec4f50&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyODg2NzJ9.3n5BukSpm_L_1veEJrEWjb9_wialXP06PCE3isiQ13k'}, 'device_id': '9baf5303-8789-49b3-9a0f-5856fe4fb911', ...}
+
+    def test_alert_center_and_read_status(system):
+        with system["app"].state.sessions.begin() as db:
+            alert = Alert(user_id=system["user_id"], device_id=system["device_id"],
+                           alert_type="LOW_WATER", title="缺水", message="水箱水量不足")
+            db.add(alert)
+            db.flush()
+            aid = alert.id
+        client, headers = system["client"], system["user_headers"]
+        alerts = client.get("/api/v1/alerts", headers=headers).json()
+&gt;       assert alerts[0]["id"] == aid
+               ^^^^^^^^^
+E       KeyError: 0
+
+backend/tests/test_user_api.py:36: KeyError</failure></testcase><testcase classname="backend.tests.test_user_api" name="test_manual_water_rate_limit_and_request_schema" time="0.158"><failure message="AssertionError: assert 409 == 429&#10; +  where 409 = &lt;Response [409 Conflict]&gt;.status_code&#10; +    where &lt;Response [409 Conflict]&gt; = post('/api/v1/plants/271f75b4-03b7-42aa-ab52-5bcfd9782ef1/water', headers=({'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwNzExZTZhYy1hNThhLTQ3NGMtOWMzNy05ODIzNWFkNmN...iwiYXVkIjoiZmxvd2VyLWFwaSIsImlhdCI6MTc4OTI4Njg3MywiZXhwIjoxNzg5Mjk0MDczfQ.oH99l_XZLBQSG33DQROYGCrOa0VB2Z4bn4_hJh2ZzBo'} | {'Idempotency-Key': 'last'}), json={'quantity': 10, 'unit': 'ml'})&#10; +      where post = &lt;starlette.testclient.TestClient object at 0x7f0526e92b10&gt;.post">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f0526eecb90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyODg2NzN9.HZBlU16_WPgbXDalylYLtseyynHIiFbATe3REnm8yIE'}, 'device_id': '1159edcb-9ec0-4815-a41b-19e71bff5117', ...}
+
+    def test_manual_water_rate_limit_and_request_schema(system):
+        client, headers, pid = system["client"], system["user_headers"], system["plant_id"]
+        with system["app"].state.sessions.begin() as db:
+            db.get(Device, system["device_id"]).time_trusted = False
+        for i in range(6):
+            response = client.post(f"/api/v1/plants/{pid}/water", headers=headers | {"Idempotency-Key": str(i)},
+                                   json={"quantity": 10, "unit": "ml"})
+            assert response.status_code == 409
+&gt;       assert client.post(f"/api/v1/plants/{pid}/water", headers=headers | {"Idempotency-Key": "last"},
+                            json={"quantity": 10, "unit": "ml"}).status_code == 429
+E       AssertionError: assert 409 == 429
+E        +  where 409 = &lt;Response [409 Conflict]&gt;.status_code
+E        +    where &lt;Response [409 Conflict]&gt; = post('/api/v1/plants/271f75b4-03b7-42aa-ab52-5bcfd9782ef1/water', headers=({'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwNzExZTZhYy1hNThhLTQ3NGMtOWMzNy05ODIzNWFkNmN...iwiYXVkIjoiZmxvd2VyLWFwaSIsImlhdCI6MTc4OTI4Njg3MywiZXhwIjoxNzg5Mjk0MDczfQ.oH99l_XZLBQSG33DQROYGCrOa0VB2Z4bn4_hJh2ZzBo'} | {'Idempotency-Key': 'last'}), json={'quantity': 10, 'unit': 'ml'})
+E        +      where post = &lt;starlette.testclient.TestClient object at 0x7f0526e92b10&gt;.post
+
+backend/tests/test_user_api.py:48: AssertionError</failure></testcase></testsuite></testsuites>

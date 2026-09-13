@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.273" timestamp="2026-09-13T16:28:49.392035+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_memory_photo" name="test_owner_can_upload_memory_photo_without_recognition" time="0.214"><failure message="assert 404 == 201&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7faf6d240050&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyODk5Mjl9.MF79Bnm4bviepFdzc8SO5bExDLu_jF4BHg9fW-GdCNQ'}, 'device_id': '2c9ac20d-0648-48e2-bf5f-3ee43b0ab9aa', ...}
+
+    def test_owner_can_upload_memory_photo_without_recognition(system):
+        content = BytesIO()
+        Image.new('RGB', (256, 256), 'green').save(content, 'JPEG')
+        client = system['client']
+        response = client.post('/api/v1/images', headers=system['user_headers'],
+            data={'plant_id': system['plant_id']}, files={'file': ('memory.jpg', content.getvalue(), 'image/jpeg')})
+&gt;       assert response.status_code == 201
+E       assert 404 == 201
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+backend/tests/test_memory_photo.py:12: AssertionError</failure></testcase></testsuite></testsuites>

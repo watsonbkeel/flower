@@ -15,6 +15,38 @@ from flower.services.jobs import enqueue_job
 router = APIRouter(prefix="/api/v1")
 
 
+@router.post("/images", status_code=201)
+def upload_memory(
+    request: Request,
+    plant_id: UUID = Form(),
+    file: UploadFile = File(),
+    user=Depends(require_user),
+    db=Depends(get_db),
+):
+    from flower.auth import owned_plant
+    from flower.models import Device
+
+    plant = owned_plant(db, str(plant_id), user.id)
+    device = db.get(Device, plant.device_id)
+    settings = request.app.state.settings
+    image = store_image(
+        settings,
+        file.file.read(settings.max_upload_mb * 1024 * 1024 + 1),
+        file.content_type,
+        device,
+        plant.id,
+        "memory",
+    )
+    try:
+        db.add(image)
+        db.flush()
+        db.commit()
+    except Exception:
+        (settings.upload_dir / image.file_path).unlink(missing_ok=True)
+        raise
+    return {"image_id": image.id, "source_type": image.source_type}
+
+
 @router.post("/device/images", status_code=202)
 def upload(
     request: Request,

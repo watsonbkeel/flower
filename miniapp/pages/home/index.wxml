@@ -1,0 +1,15 @@
+<view class="page">
+  <view class="error" wx:if="{{error}}">{{error}}</view>
+  <view wx:if="{{loading}}" class="empty">正在读取植物状态</view>
+  <view wx:elif="{{!plant}}" class="empty"><view class="title">我的植物</view><button class="button" bindtap="add">添加植物</button></view>
+  <block wx:else>
+    <view class="row"><view><view class="title">{{plant.name}}</view><view class="muted">{{plant.scientific_name || '品种待确认'}}</view></view><view class="source">{{sourceLabel}}</view></view>
+    <view class="section"><image class="photo" mode="aspectFill" src="{{photo || '/assets/plant.jpg'}}"/><text class="muted" wx:if="{{!photo}}">示例照片</text></view>
+    <view class="section"><view class="row"><text>{{modeLabel}}</text><switch checked="{{plant.auto_mode}}" color="#246b4b" bindchange="toggleAuto" disabled="{{busy}}"/></view><view class="muted">自动守护</view><view class="error" wx:if="{{faultText}}">{{faultText}}</view>
+      <view class="metrics"><view><text class="muted">相对土壤湿度</text><view class="metric">{{soilText}}%</view></view><view><text class="muted">水箱状态</text><view class="name">{{device.water_level_ok ? '水量正常' : '待检查'}}</view></view><view><text class="muted">空气温度</text><view>{{device.temperature_c === null ? '--' : device.temperature_c}} °C</view></view><view><text class="muted">空气湿度</text><view>{{device.air_humidity === null ? '--' : device.air_humidity}}%</view></view></view>
+      <view class="notice">{{decision.explain_zh || '等待下一次养护判断'}}</view>
+    </view>
+    <view class="section"><view class="name">手动补水</view><view class="muted">基于标定的估算量 · mL</view><view class="field"><input type="digit" value="{{amount}}" bindinput="changeAmount"/></view><button class="button" disabled="{{!canWater || busy}}" loading="{{busy}}" bindtap="water">确认补水</button><view class="notice">{{commandText}}</view></view>
+    <view class="actions"><button class="button secondary" bindtap="care">养护卡</button><button class="button secondary" bindtap="trends">数据趋势</button></view>
+  </block>
+</view>

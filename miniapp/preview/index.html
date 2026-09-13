@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>智慧守候 · 植物</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><a class="brand" href="#home"><img src="/preview-assets/sprout-active.png" alt="">智慧守候</a><span class="environment">开发预览 · 模拟设备</span><span class="header-right">单盆守护 <span class="dot"></span></span></header>
+<aside><nav aria-label="主导航"><a href="#home" data-tab="home"><img src="/preview-assets/sprout.png" alt="">我的植物</a><a href="#care" data-tab="care">养护卡</a><a href="#trends" data-tab="trends">数据趋势</a><a href="#records" data-tab="records"><img src="/preview-assets/history.png" alt="">守候记录</a><a href="#memories" data-tab="memories"><img src="/preview-assets/book-heart.png" alt="">家人的记忆</a><a href="#alerts" data-tab="alerts"><img src="/preview-assets/bell.png" alt="">告警中心</a></nav><div class="aside-foot">智慧守候<br><small>v2.2.2</small></div></aside>
+<main><div id="error" role="alert" hidden></div><div id="content"><p class="empty">正在读取植物状态</p></div></main>
+<dialog id="water-dialog"><form id="water-form"><h2>确认补水</h2><p class="muted">基于标定的估算量</p><label>水量 <div class="input-unit"><input id="water-amount" name="amount" type="number" min="1" max="60" value="10" required><span>mL</span></div></label><div class="dialog-actions"><button type="button" id="cancel-water" class="secondary">取消</button><button type="submit">确认补水</button></div></form></dialog>
+<script src="/preview-utils/viewmodel.js"></script><script src="app.js"></script>
+</body></html>

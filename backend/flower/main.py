@@ -23,6 +23,9 @@ def create_app(settings=None):
     app.state.settings = settings
     app.state.engine = engine
     app.state.sessions = sessions(engine)
+    from flower.rate_limit import RateLimiter
+
+    app.state.rate_limiter = RateLimiter()
 
     @app.exception_handler(DomainError)
     async def domain_error(request, exc):
@@ -70,11 +73,31 @@ def create_app(settings=None):
     from flower.api.plants import router as plants_router
     from flower.api.media import router as media_router
     from flower.api.care import router as care_router
+    from flower.api.users import router as users_router
+    from flower.api.trends import router as trends_router
 
     app.include_router(device_router)
     app.include_router(plants_router)
     app.include_router(media_router)
     app.include_router(care_router)
+    app.include_router(users_router)
+    app.include_router(trends_router)
+
+    if settings.app_env != "production":
+        from pathlib import Path
+        from fastapi.staticfiles import StaticFiles
+
+        miniapp = Path(__file__).resolve().parents[2] / "miniapp"
+        if (miniapp / "preview").exists():
+            app.mount(
+                "/preview", StaticFiles(directory=miniapp / "preview", html=True), name="preview"
+            )
+            app.mount(
+                "/preview-assets", StaticFiles(directory=miniapp / "assets"), name="preview-assets"
+            )
+            app.mount(
+                "/preview-utils", StaticFiles(directory=miniapp / "utils"), name="preview-utils"
+            )
 
     @app.get("/health")
     def health():

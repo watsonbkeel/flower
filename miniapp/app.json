@@ -1,0 +1,13 @@
+{
+  "pages": ["pages/home/index", "pages/plant/index", "pages/records/index", "pages/memories/index", "pages/alerts/index", "pages/trends/index", "pages/add/index"],
+  "window": {"navigationBarTitleText": "智慧守候", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f3f5f4"},
+  "tabBar": {"color": "#66716a", "selectedColor": "#246b4b", "backgroundColor": "#ffffff", "borderStyle": "white",
+    "list": [
+      {"pagePath": "pages/home/index", "text": "植物", "iconPath": "assets/sprout.png", "selectedIconPath": "assets/sprout-active.png"},
+      {"pagePath": "pages/records/index", "text": "记录", "iconPath": "assets/history.png", "selectedIconPath": "assets/history-active.png"},
+      {"pagePath": "pages/memories/index", "text": "记忆", "iconPath": "assets/book-heart.png", "selectedIconPath": "assets/book-heart-active.png"},
+      {"pagePath": "pages/alerts/index", "text": "告警", "iconPath": "assets/bell.png", "selectedIconPath": "assets/bell-active.png"}
+    ]},
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

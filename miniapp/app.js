@@ -1,0 +1,2 @@
+const config = require('./config');
+App({globalData: {config, token: '', plantId: ''}});
