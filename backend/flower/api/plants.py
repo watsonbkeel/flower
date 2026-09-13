@@ -104,6 +104,9 @@ def confirm_species(
     plant_id: UUID, data: SpeciesConfirmation, user=Depends(require_user), db=Depends(get_db)
 ):
     plant = owned_plant(db, str(plant_id), user.id)
+    # Serialize with command creation and profile activation on this device.
+    db.refresh(db.get(Device, plant.device_id), with_for_update=True)
+    db.refresh(plant, with_for_update=True)
     if db.scalar(
         select(Command.id).where(
             Command.plant_id == plant.id,
@@ -115,10 +118,12 @@ def confirm_species(
     plant.common_name, plant.scientific_name = data.common_name, data.scientific_name
     plant.input_method, plant.recognition_confidence = data.input_method, data.confidence
     plant.recognition_confirmed, plant.auto_mode = True, False
+    now = utcnow()
     for profile in db.scalars(select(CareProfile).where(CareProfile.plant_id == plant.id)):
         profile.confirmed = False
+        profile.valid_until = min(profile.valid_until, now)
     for policy in db.scalars(select(FallbackPolicy).where(FallbackPolicy.plant_id == plant.id)):
-        policy.valid_until = utcnow()
+        policy.valid_until = min(policy.valid_until, now)
     latest = db.scalar(
         select(PlantImage)
         .where(PlantImage.plant_id == plant.id)

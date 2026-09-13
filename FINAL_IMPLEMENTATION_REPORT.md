@@ -31,7 +31,7 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 
 | 命令/范围 | 结果 | 证据 |
 |---|---|---|
-| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-job-retry-postgres.xml` | PASS，170项 | [PostgreSQL回归](evidence/stage8-job-retry-postgres.xml) |
+| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-species-postgres.xml` | PASS，173项 | [PostgreSQL回归](evidence/stage8-species-postgres.xml) |
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
 | `npm --prefix miniapp test` | PASS，9项 | [Node执行记录](evidence/stage8-job-retry-node-green.tap) |
@@ -145,6 +145,8 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 原生小程序与浏览器预览共用天气展示规则：0°C和0mm正确保留，缺失值不填0；过期、时间异常、来源不匹配明确标示且隐藏当前读数。天气来源与养护知识来源独立显示，并标出观测时间。浏览器天气定时刷新只更新环境区域，不清空品种确认表单。
 
 养护研究与记忆整理以每次用户操作的请求键去重，不再被资源更新时间绑定到旧的失败job。相同请求键重放返回原job；新操作创建新job并保留失败历史。通用作业入队使用数据库原子冲突处理，8个并发同键请求只写入一条job。重新生成养护卡仍产生待确认的新版本，不自动替换已确认知识。
+
+品种重新确认时，旧养护卡和离线策略立即在云端失效，旧卡不能通过再次确认恢复。品种确认、养护卡激活及自动模式切换按设备、植物的统一顺序加锁，与命令创建串行化。并发确认和品种修改、研究期间品种变化的故障注入已通过；Pi缓存撤销仍需设备下一次同步。
 
 小时聚合按设备、植物、UTC小时和来源隔离；仅完整小时入库。清理前复核样本数、覆盖时间、平均/极值和水位比，30天raw/365天hourly下限受配置约束。晚到已清理小时的数据保留待核验，不覆盖旧聚合。被植物/记忆引用的图片长期保留。
 

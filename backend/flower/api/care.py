@@ -54,10 +54,12 @@ def confirm(
     db=Depends(get_db),
 ):
     plant = owned_plant(db, str(plant_id), user.id)
+    db.refresh(db.get(Device, plant.device_id), with_for_update=True)
+    db.refresh(plant, with_for_update=True)
     profile = db.scalar(
-        select(CareProfile).where(
-            CareProfile.id == str(UUID(data.profile_id)), CareProfile.plant_id == plant.id
-        )
+        select(CareProfile)
+        .where(CareProfile.id == str(UUID(data.profile_id)), CareProfile.plant_id == plant.id)
+        .with_for_update()
     )
     if not profile or profile.valid_until <= utcnow():
         raise DomainError("PROFILE_MISSING")
@@ -77,8 +79,9 @@ def auto_mode(
     plant_id: UUID, data: Toggle, request: Request, user=Depends(require_user), db=Depends(get_db)
 ):
     plant = owned_plant(db, str(plant_id), user.id)
-    db.refresh(plant, with_for_update=True)
     device = db.get(Device, plant.device_id)
+    db.refresh(device, with_for_update=True)
+    db.refresh(plant, with_for_update=True)
     if data.enabled:
         _, profile, _ = safety_context(
             db, request.app.state.settings, device, plant, utcnow(), source="user_manual"

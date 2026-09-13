@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="3" time="0.903" timestamp="2026-09-13T18:08:04.543528+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_species_invalidation" name="test_changed_species_cannot_reconfirm_old_care_or_water_until_new_research" time="0.470"><failure message="assert 200 == 409&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fed0f3d5fd0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTU4ODR9.LVsqb7BBehx_HoCkbD5gDsp44JZzB_CLp0eKrkSkEdY'}, 'device_id': '6785c9a3-d3b2-4c8e-b38f-382a46a6462b', ...}
+
+    def test_changed_species_cannot_reconfirm_old_care_or_water_until_new_research(system):
+        client, headers, pid = system["client"], system["user_headers"], system["plant_id"]
+        with system["app"].state.sessions() as db:
+            old_id = db.scalar(select(CareProfile.id).where(CareProfile.plant_id == pid))
+        assert client.post(f"/api/v1/plants/{pid}/confirm-species", headers=headers, json=SPECIES).status_code == 200
+        rejected = client.post(f"/api/v1/plants/{pid}/care-profile/confirm", headers=headers,
+                               json={"profile_id": old_id})
+&gt;       assert rejected.status_code == 409
+E       assert 200 == 409
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+backend/tests/test_species_invalidation.py:25: AssertionError</failure></testcase><testcase classname="backend.tests.test_species_invalidation" name="test_species_change_during_research_rejects_old_worker_result" time="0.169" /><testcase classname="backend.tests.test_species_invalidation" name="test_concurrent_species_and_care_confirmation_leave_old_profile_invalid" time="0.156"><failure message="AssertionError: assert not True&#10; +  where True = &lt;flower.models.CareProfile object at 0x7fed0db33d40&gt;.confirmed&#10; +    where &lt;flower.models.CareProfile object at 0x7fed0db33d40&gt; = get(CareProfile, 'd0ad928e-57c9-4565-b203-17bbccf8801f')&#10; +      where get = &lt;sqlalchemy.orm.session.Session object at 0x7fed0e778180&gt;.get">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7fed0db020d0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTU4ODV9.mE-kQgdQYaIGIDIsuKza0c6lyBlbSCVnpa0J7zkIq-g'}, 'device_id': '137ab7aa-4b2f-41be-8726-276709334fe4', ...}
+
+    def test_concurrent_species_and_care_confirmation_leave_old_profile_invalid(system):
+        client, headers, pid = system["client"], system["user_headers"], system["plant_id"]
+        with system["app"].state.sessions.begin() as db:
+            profile = db.scalar(select(CareProfile))
+            profile.confirmed = False
+            old_id = profile.id
+        barrier = Barrier(2)
+
+        def change():
+            barrier.wait(timeout=10)
+            return client.post(f"/api/v1/plants/{pid}/confirm-species", headers=headers, json=SPECIES)
+
+        def confirm():
+            barrier.wait(timeout=10)
+            return client.post(f"/api/v1/plants/{pid}/care-profile/confirm", headers=headers,
+                               json={"profile_id": old_id})
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            changed, confirmed = pool.submit(change), pool.submit(confirm)
+            assert changed.result(timeout=15).status_code == 200
+            assert confirmed.result(timeout=15).status_code in {200, 409}
+        with system["app"].state.sessions() as db:
+            assert not db.get(Plant, pid).auto_mode
+&gt;           assert not db.get(CareProfile, old_id).confirmed
+E           AssertionError: assert not True
+E            +  where True = &lt;flower.models.CareProfile object at 0x7fed0db33d40&gt;.confirmed
+E            +    where &lt;flower.models.CareProfile object at 0x7fed0db33d40&gt; = get(CareProfile, 'd0ad928e-57c9-4565-b203-17bbccf8801f')
+E            +      where get = &lt;sqlalchemy.orm.session.Session object at 0x7fed0e778180&gt;.get
+
+backend/tests/test_species_invalidation.py:83: AssertionError</failure></testcase></testsuite></testsuites>
