@@ -20,6 +20,7 @@
 - [x] Stage 7开发准备：SHA发布清单、显式migration/无build回滚脚本、Nginx/timer模板、DB+uploads+manifest备份与独立PG恢复；136项累计通过，依赖审计无已知漏洞
 - [x] Stage 8开发验证：独立遥测、执行中策略到期/撤销、启动宽限期、迟到回执、逐命令对账、fallback审计、通知job、离线Mock链路及浏览器操作验证；累计149项PostgreSQL测试通过
 - [x] Stage 8交付复核修复：Pi时钟跳变后稳定重验恢复、fallback回执不阻塞云端对账；累计155项PostgreSQL测试通过
+- [x] Stage 8天气缓存复核：独立Worker刷新过期天气、持久重试、旧上下文结果隔离与降雨输入校验；累计166项PostgreSQL测试通过
 - [x] 原生页面6项Node验证、桌面/手机Playwright截图与命令/养护/记忆工作流验证
 - [x] 最终报告及验收矩阵：`FINAL_IMPLEMENTATION_REPORT.md`
 
@@ -48,6 +49,7 @@
 - DATA-001真实遥测：BLOCKED_PHYSICAL；Stage 2通过当天未连接Pi，未产生real记录。
 - `evidence/stage8-recovery-audit-red.xml`：修复前6项预期失败；`evidence/stage8-recovery-audit-green.xml`：14项定向测试通过。
 - `evidence/stage8-recovery-postgres.xml`：155 passed，保留1项上游弃用警告。时钟故障为注入测试，没有新增实物验收证据。
+- `evidence/stage8-weather-postgres.xml`：166 passed；新增11项天气刷新/故障测试，包含真实Worker子进程与Mock天气，详见`evidence/stage8-weather.md`。
 
 ## 已知共享宿主机事实
 

@@ -1,5 +1,5 @@
 from dataclasses import asdict, replace
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy import select, func
 
@@ -8,6 +8,7 @@ from flower.models import Device, FallbackPolicy, Memory, Event, Command, Wateri
 from flower.services.commands import safety_context, quota_used, create_command
 from flower.services.decision import DecisionInput, DecisionConfig, decide
 from flower.services.knowledge import Knowledge, MemoryRule, compile_policy, Weather, CareSource
+from flower.services.weather import current_weather
 
 
 def research(provider, plant):
@@ -142,12 +143,8 @@ def evaluate_plant(db, settings, plant, *, create=True):
             WateringSession.device_id == device.id, WateringSession.quota_ml > 0
         )
     )
-    weather = profile.profile.get("weather")
-    rain = bool(
-        weather
-        and datetime.fromisoformat(weather["valid_until"]) > now
-        and weather["rain_next_12h_mm"] >= 3
-    )
+    weather = current_weather(profile.profile.get("weather"), now, device.source_type)
+    rain = bool(weather and weather.rain_next_12h_mm >= 3)
     values = DecisionInput(
         now=now,
         timezone=plant.timezone,

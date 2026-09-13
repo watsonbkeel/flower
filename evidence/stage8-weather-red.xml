@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="7" time="1.123" timestamp="2026-09-13T17:41:57.549110+08:00" hostname="VM-0-13-debian"><testcase classname="backend.tests.test_weather_refresh" name="test_weather_refresh_is_scheduled_once_and_renews_after_expiry" time="0.222"><failure message="ModuleNotFoundError: No module named 'flower.services.weather'">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f7da65778c0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTQzMTd9.RiUHwqNch4rfoOnKIxV6DzBhwq2V4-LKwcxvfCieNeM'}, 'device_id': '8e6e8e46-7c15-4976-bea4-5f4ba7b4ff13', ...}
+
+    def test_weather_refresh_is_scheduled_once_and_renews_after_expiry(system):
+&gt;       from flower.services.weather import schedule_weather
+E       ModuleNotFoundError: No module named 'flower.services.weather'
+
+backend/tests/test_weather_refresh.py:17: ModuleNotFoundError</failure></testcase><testcase classname="backend.tests.test_weather_refresh" name="test_weather_failure_uses_existing_bounded_job_retry_and_retains_cache" time="0.115"><failure message="ModuleNotFoundError: No module named 'flower.services.weather'">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f7da59d20d0&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTQzMTd9.Jg-ASsNCwa-P2rYCpUGnTGrjbK0Ej9dYuynIXc8H2mM'}, 'device_id': 'cbbe00be-cf68-40b4-bc5e-a3bd530eb0d4', ...}
+
+    def test_weather_failure_uses_existing_bounded_job_retry_and_retains_cache(system):
+&gt;       from flower.services.weather import schedule_weather
+E       ModuleNotFoundError: No module named 'flower.services.weather'
+
+backend/tests/test_weather_refresh.py:42: ModuleNotFoundError</failure></testcase><testcase classname="backend.tests.test_weather_refresh" name="test_weather_refresh_cannot_update_a_revoked_profile" time="0.170"><failure message="ModuleNotFoundError: No module named 'flower.services.weather'">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f7da5129310&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTQzMTh9.u3NofIz1mt8ulxx4o2p49_U7uWCusxYWZtQxe5yuhFc'}, 'device_id': 'b68e61f8-d26c-47da-8803-34c93e563401', ...}
+
+    def test_weather_refresh_cannot_update_a_revoked_profile(system):
+&gt;       from flower.services.weather import schedule_weather
+E       ModuleNotFoundError: No module named 'flower.services.weather'
+
+backend/tests/test_weather_refresh.py:70: ModuleNotFoundError</failure></testcase><testcase classname="backend.tests.test_weather_refresh" name="test_invalid_weather_is_not_used_by_rain_decision[expired]" time="0.132" /><testcase classname="backend.tests.test_weather_refresh" name="test_invalid_weather_is_not_used_by_rain_decision[future]" time="0.125"><failure message="assert ([True, True] and not True)&#10; +  where True = any([True, True])">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f7da4fb2e90&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTQzMTh9.ubROM4kfWhZA3SzCnj-DAXzqa8zYW2oKdrs4SdOga4Q'}, 'device_id': '02f353b5-1807-41f2-b23d-323180ce994d', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f7da59c23f0&gt;
+invalid = 'future'
+
+    @pytest.mark.parametrize("invalid", ["expired", "future", "source", "malformed"])
+    def test_invalid_weather_is_not_used_by_rain_decision(system, monkeypatch, invalid):
+        from flower.services.care import evaluate_plant
+        from flower.models import DeviceStatus
+
+        now = utcnow()
+        weather = MockProviders().weather({})
+        weather["rain_next_12h_mm"] = 10
+        if invalid == "expired":
+            weather["valid_until"] = (now - timedelta(seconds=1)).isoformat()
+        elif invalid == "future":
+            weather["observed_at"] = (now + timedelta(hours=1)).isoformat()
+        elif invalid == "source":
+            weather["source_type"] = "real"
+        else:
+            weather["valid_until"] = "invalid"
+        with system["app"].state.sessions.begin() as db:
+            profile = active_profile(db, system)
+            profile.profile = profile.profile | {"weather": weather}
+            plant = db.get(Plant, system["plant_id"])
+            plant.placement_type = "outdoor"
+            db.get(DeviceStatus, plant.device_id).soil_moisture = 39
+            seen = []
+            from flower.services.decision import decide
+
+            def capture(values, config):
+                seen.append(values.rain_expected)
+                return decide(values, config)
+
+            monkeypatch.setattr("flower.services.care.decide", capture)
+            evaluate_plant(db, system["settings"], plant, create=False)
+&gt;           assert seen and not any(seen)
+E           assert ([True, True] and not True)
+E            +  where True = any([True, True])
+
+backend/tests/test_weather_refresh.py:121: AssertionError</failure></testcase><testcase classname="backend.tests.test_weather_refresh" name="test_invalid_weather_is_not_used_by_rain_decision[source]" time="0.121"><failure message="assert ([True, True] and not True)&#10; +  where True = any([True, True])">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f7da4e90910&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTQzMTh9.yOwswNfR09O2tvcNZWFXQ5aCaBulKanm77Mw2PNlvew'}, 'device_id': 'b7b25d2d-7fa2-4888-afe2-a7f82847518c', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f7da4dc8830&gt;
+invalid = 'source'
+
+    @pytest.mark.parametrize("invalid", ["expired", "future", "source", "malformed"])
+    def test_invalid_weather_is_not_used_by_rain_decision(system, monkeypatch, invalid):
+        from flower.services.care import evaluate_plant
+        from flower.models import DeviceStatus
+
+        now = utcnow()
+        weather = MockProviders().weather({})
+        weather["rain_next_12h_mm"] = 10
+        if invalid == "expired":
+            weather["valid_until"] = (now - timedelta(seconds=1)).isoformat()
+        elif invalid == "future":
+            weather["observed_at"] = (now + timedelta(hours=1)).isoformat()
+        elif invalid == "source":
+            weather["source_type"] = "real"
+        else:
+            weather["valid_until"] = "invalid"
+        with system["app"].state.sessions.begin() as db:
+            profile = active_profile(db, system)
+            profile.profile = profile.profile | {"weather": weather}
+            plant = db.get(Plant, system["plant_id"])
+            plant.placement_type = "outdoor"
+            db.get(DeviceStatus, plant.device_id).soil_moisture = 39
+            seen = []
+            from flower.services.decision import decide
+
+            def capture(values, config):
+                seen.append(values.rain_expected)
+                return decide(values, config)
+
+            monkeypatch.setattr("flower.services.care.decide", capture)
+            evaluate_plant(db, system["settings"], plant, create=False)
+&gt;           assert seen and not any(seen)
+E           assert ([True, True] and not True)
+E            +  where True = any([True, True])
+
+backend/tests/test_weather_refresh.py:121: AssertionError</failure></testcase><testcase classname="backend.tests.test_weather_refresh" name="test_invalid_weather_is_not_used_by_rain_decision[malformed]" time="0.124"><failure message="ValueError: Invalid isoformat string: 'invalid'">system = {'app': &lt;fastapi.applications.FastAPI object at 0x7f7da4df8a50&gt;, 'client': &lt;starlette.testclient.TestClient object at ...E3ODkyOTQzMTh9.4ibjkVl64SIO9DITd4h9SDuMFU5M0xxXQfMhzomu1aI'}, 'device_id': '8027de2b-1ffe-40e7-b0fd-a8a01986a1af', ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f7da4fcb460&gt;
+invalid = 'malformed'
+
+    @pytest.mark.parametrize("invalid", ["expired", "future", "source", "malformed"])
+    def test_invalid_weather_is_not_used_by_rain_decision(system, monkeypatch, invalid):
+        from flower.services.care import evaluate_plant
+        from flower.models import DeviceStatus
+
+        now = utcnow()
+        weather = MockProviders().weather({})
+        weather["rain_next_12h_mm"] = 10
+        if invalid == "expired":
+            weather["valid_until"] = (now - timedelta(seconds=1)).isoformat()
+        elif invalid == "future":
+            weather["observed_at"] = (now + timedelta(hours=1)).isoformat()
+        elif invalid == "source":
+            weather["source_type"] = "real"
+        else:
+            weather["valid_until"] = "invalid"
+        with system["app"].state.sessions.begin() as db:
+            profile = active_profile(db, system)
+            profile.profile = profile.profile | {"weather": weather}
+            plant = db.get(Plant, system["plant_id"])
+            plant.placement_type = "outdoor"
+            db.get(DeviceStatus, plant.device_id).soil_moisture = 39
+            seen = []
+            from flower.services.decision import decide
+
+            def capture(values, config):
+                seen.append(values.rain_expected)
+                return decide(values, config)
+
+            monkeypatch.setattr("flower.services.care.decide", capture)
+&gt;           evaluate_plant(db, system["settings"], plant, create=False)
+
+backend/tests/test_weather_refresh.py:120:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+db = &lt;sqlalchemy.orm.session.Session object at 0x7f7da4dfa850&gt;
+settings = Settings(app_env='test', spec_version='2.2.2', software_version='development', app_base_url='http://127.0.0.1:18082', ..., provider_mode='mock', provider_base_url='', provider_api_key='', provider_timeout_sec=15.0, provider_daily_limit=100)
+plant = &lt;flower.models.Plant object at 0x7f7da4e3cef0&gt;
+
+    def evaluate_plant(db, settings, plant, *, create=True):
+        now = utcnow()
+        device = db.get(Device, plant.device_id)
+        try:
+            status, profile, calibration = safety_context(
+                db, settings, device, plant, now, source="cloud_auto"
+            )
+        except DomainError as exc:
+            return {
+                "decision": "hold",
+                "reason": exc.code,
+                "memory_effects": [],
+                "explain_zh": exc.message,
+            }
+        memories = list(
+            db.scalars(
+                select(Memory)
+                .where(
+                    Memory.plant_id == plant.id,
+                    Memory.rule_confirmed.is_(True),
+                    Memory.rule_enabled.is_(True),
+                )
+                .order_by(Memory.created_at)
+            )
+        )
+        used = max(quota_used(db, device.id, now), status.used_24h_ml)
+        last = db.scalar(
+            select(func.max(WateringSession.occurred_at)).where(
+                WateringSession.device_id == device.id, WateringSession.quota_ml &gt; 0
+            )
+        )
+        weather = profile.profile.get("weather")
+        rain = bool(
+            weather
+&gt;           and datetime.fromisoformat(weather["valid_until"]) &gt; now
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and weather["rain_next_12h_mm"] &gt;= 3
+        )
+E       ValueError: Invalid isoformat string: 'invalid'
+
+backend/flower/services/care.py:148: ValueError</failure></testcase></testsuite></testsuites>

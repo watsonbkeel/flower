@@ -65,6 +65,11 @@ class Worker:
                     raise ValueError("SPECIES_UNCONFIRMED")
                 content = serialize(plant)
                 kind = job.job_type
+            elif job.job_type == "weather_refresh":
+                from flower.services.weather import weather_context
+
+                content = weather_context(db, db.get(CareProfile, job.target_id), utcnow())
+                kind = job.job_type
             elif job.job_type == "memory_structure":
                 memory = db.get(Memory, job.target_id)
                 content = memory.original_experience
@@ -85,6 +90,16 @@ class Worker:
             from flower.services.care import research
 
             result = research(self.providers, content)
+        elif kind == "weather_refresh":
+            from flower.services.weather import current_weather
+            from flower.errors import DomainError
+
+            weather = current_weather(
+                self.providers.weather(content), utcnow(), content["source_type"]
+            )
+            if weather is None:
+                raise DomainError("WEATHER_UNAVAILABLE")
+            result = weather.model_dump(mode="json")
         elif kind == "alert_notification":
             from flower.schemas import StrictModel, SourceType
             from typing import Literal
@@ -107,6 +122,17 @@ class Worker:
             if kind == "plant_recognition":
                 image = db.get(PlantImage, job.target_id)
                 image.recognition_result = result
+            elif kind == "weather_refresh":
+                from flower.services.weather import weather_context, current_weather
+
+                profile = db.scalar(
+                    select(CareProfile).where(CareProfile.id == job.target_id).with_for_update()
+                )
+                if weather_context(db, profile, utcnow()) != content:
+                    raise ValueError("WEATHER_CONTEXT_CHANGED")
+                if current_weather(result, utcnow(), content["source_type"]) is None:
+                    raise ValueError("WEATHER_EXPIRED")
+                profile.profile = profile.profile | {"weather": result}
             elif kind == "care_research":
                 plant = db.scalar(select(Plant).where(Plant.id == job.target_id).with_for_update())
                 if (
@@ -203,9 +229,11 @@ def main():
         return
     while True:
         from flower.services.retention import schedule
+        from flower.services.weather import schedule_weather
 
         with sessions.begin() as db:
             schedule(db, utcnow())
+            schedule_weather(db, utcnow())
         worker.run_once(isolated=True)
         from flower.services.care import evaluate_plant
 

@@ -31,8 +31,9 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 
 | 命令/范围 | 结果 | 证据 |
 |---|---|---|
-| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-recovery-postgres.xml` | PASS，155项 | [PostgreSQL回归](evidence/stage8-recovery-postgres.xml) |
+| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-weather-postgres.xml` | PASS，166项 | [PostgreSQL回归](evidence/stage8-weather-postgres.xml) |
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
+| 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
 | `npm --prefix miniapp test` | PASS，6项 | [Node执行记录](evidence/stage8-node.tap) |
 | Playwright桌面1440x1000、手机390x844六页面/图像/canvas/溢出 | PASS，Mock | [浏览器检查](evidence/stage5-browser.json) |
 | 浏览器pending到succeeded、养护确认、记忆规则、自动开关 | PASS，Mock | [工作流](evidence/stage8-browser-workflow.json) |
@@ -136,6 +137,8 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 按command_id、脉冲序号/水量、可信时间和本地已持久回执对账；缺证据或篡改不减少额度。迟到结果可被接收并核验，但保留云端timed_out历史。不确定记录保守占额24小时且保留审计。fallback补水按local_id写独立审计会话，重放不重复记账。
 
 交付复核修复了Pi启动后NTP校时导致时间永久不可信的问题：跳变立即失去信任，稳定30秒后重新验证NTP，恢复FULL仍须经过原有180秒健康窗口。NTP探测期间的跳变也拒绝信任；共享时钟状态由锁保护。回执查询在100项分页前过滤本地fallback，避免大量历史fallback记录阻塞云端命令对账，保留原始审计与额度。
+
+天气缓存不再只随养护卡生成更新。Worker为最新已确认有效养护卡的缺失/过期天气创建幂等刷新job，失败最多尝试3次，每小时最多新建一组尝试；已有活跃job不重复入队。网络请求在独立作业进程执行，写回前复核养护卡、地点和数据来源。过期、未来时间、格式错误或来源不匹配的天气不参与降雨判断，也不覆盖已有缓存。真实Provider验收仍待B04。
 
 小时聚合按设备、植物、UTC小时和来源隔离；仅完整小时入库。清理前复核样本数、覆盖时间、平均/极值和水位比，30天raw/365天hourly下限受配置约束。晚到已清理小时的数据保留待核验，不覆盖旧聚合。被植物/记忆引用的图片长期保留。
 
