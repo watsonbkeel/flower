@@ -49,3 +49,26 @@ test('native care page exposes weather freshness and source independently of kno
   assert.equal(page.data.weather.available, false);
   assert.equal(page.data.weather.rainText, '--');
 });
+
+test('new care and memory actions use distinct request keys', async () => {
+  for (const name of ['plant', 'memories']) {
+    let page, sequence = 0;
+    const calls = [];
+    const api = {key: () => `request-${++sequence}`, request: async (...args) => {
+      calls.push(args); return {job_id: 'job-1'};
+    }};
+    vm.runInNewContext(fs.readFileSync(`pages/${name}/index.js`, 'utf8'), {
+      require: () => api, Page: value => { page = value; }, wx: {setStorageSync: () => {}}
+    });
+    page.setData = values => Object.assign(page.data, values);
+    page.action = fn => fn();
+    page.resumeJob = () => {};
+    page.data.plant = {id: 'plant-1'};
+    for (let i = 0; i < 2; i++) {
+      if (name === 'plant') page.generate();
+      else await page.structure({currentTarget: {dataset: {id: 'memory-1'}}});
+    }
+    assert.equal(calls[0][3]['Idempotency-Key'], 'request-1');
+    assert.equal(calls[1][3]['Idempotency-Key'], 'request-2');
+  }
+});

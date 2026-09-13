@@ -92,6 +92,8 @@ queued -> running -> succeeded | failed
 
 慢任务必须由独立 Worker 从 PostgreSQL jobs 原子领取；API 请求只创建 Job 并返回 job_id，不用 BackgroundTasks 作为可靠队列。
 
+养护卡生成与记忆规则整理支持可选`Idempotency-Key`请求头（1-100字符），按用户、操作类型和目标资源隔离。同一键重放返回原job，包括其失败终态；用户主动重新生成或失败后重试使用新键。未提供请求键时，每次POST视为新操作。作业入队以数据库唯一约束和原子冲突处理去重；Worker每个job最多尝试3次，失败历史保留。
+
 ## 8. 趋势数据
 
 趋势响应必须包含：

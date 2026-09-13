@@ -1,0 +1,7 @@
+{
+  "source_type": "mock",
+  "job_responses": "intercepted fixtures; no provider calls",
+  "failed_action_enabled": "PASS",
+  "second_action_succeeded": "PASS",
+  "distinct_request_keys": "PASS"
+}

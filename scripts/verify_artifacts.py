@@ -33,7 +33,7 @@ def main():
         if path.is_file() and any(value in path.read_bytes() for value in secrets):
             leaked.append(name)
     assert not leaked, "A runtime secret appeared in a deliverable"
-    suite = ET.parse(root / "evidence/stage8-weather-postgres.xml").getroot().find("testsuite")
+    suite = ET.parse(root / "evidence/stage8-job-retry-postgres.xml").getroot().find("testsuite")
     assert suite.attrib["failures"] == "0" and suite.attrib["errors"] == "0"
     subprocess.run(["git", "diff", "--check"], cwd=root, check=True)
     result = {

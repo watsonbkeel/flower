@@ -1,6 +1,6 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Header, Request
 from sqlalchemy import select
 
 from flower.auth import get_db, require_user, owned_plant
@@ -25,7 +25,12 @@ router = APIRouter(prefix="/api/v1")
 
 
 @router.post("/plants/{plant_id}/care-profile/generate", status_code=202)
-def generate(plant_id: UUID, user=Depends(require_user), db=Depends(get_db)):
+def generate(
+    plant_id: UUID,
+    idempotency_key: str | None = Header(default=None, min_length=1, max_length=100),
+    user=Depends(require_user),
+    db=Depends(get_db),
+):
     plant = owned_plant(db, str(plant_id), user.id)
     if not plant.recognition_confirmed:
         raise DomainError("SPECIES_UNCONFIRMED")
@@ -35,7 +40,7 @@ def generate(plant_id: UUID, user=Depends(require_user), db=Depends(get_db)):
         "plant",
         plant.id,
         user.id,
-        f"care:{plant.id}:{plant.updated_at.isoformat()}",
+        f"care:{user.id}:{plant.id}:{idempotency_key or uuid4()}",
     )
     return {"job_id": job.id}
 
@@ -159,7 +164,12 @@ def update_memory(
 
 
 @router.post("/memories/{memory_id}/structure-rule", status_code=202)
-def structure(memory_id: UUID, user=Depends(require_user), db=Depends(get_db)):
+def structure(
+    memory_id: UUID,
+    idempotency_key: str | None = Header(default=None, min_length=1, max_length=100),
+    user=Depends(require_user),
+    db=Depends(get_db),
+):
     memory = owned_memory(db, memory_id, user.id)
     if not memory.original_experience:
         raise DomainError("EXPERIENCE_REQUIRED")
@@ -169,7 +179,7 @@ def structure(memory_id: UUID, user=Depends(require_user), db=Depends(get_db)):
         "memory",
         memory.id,
         user.id,
-        f"memory:{memory.id}:{memory.updated_at.isoformat()}",
+        f"memory:{user.id}:{memory.id}:{idempotency_key or uuid4()}",
     )
     return {"job_id": job.id}
 

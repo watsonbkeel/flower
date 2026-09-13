@@ -137,9 +137,9 @@ content.addEventListener('click', async event => {
     if(button.dataset.action==='water')document.querySelector('#water-dialog').showModal();
     if(button.dataset.action==='care')location.hash='care';
     if(button.dataset.action==='capture'){await api(`/plants/${plantId}/capture`,'POST',{}, {'Idempotency-Key':key()});document.querySelector('#job-status').textContent='等待设备拍照';}
-    if(button.dataset.action==='research'){button.disabled=true;const job=await api(`/plants/${plantId}/care-profile/generate`,'POST');await waitJob(job.job_id);}
+    if(button.dataset.action==='research'){button.disabled=true;const job=await api(`/plants/${plantId}/care-profile/generate`,'POST',{}, {'Idempotency-Key':key()});await waitJob(job.job_id);}
     if(button.dataset.action==='confirm-care'){await api(`/plants/${plantId}/care-profile/confirm`,'POST',{profile_id:state.care_profile.id});await render();}
-    if(button.dataset.action==='structure'){button.disabled=true;const job=await api(`/memories/${button.dataset.id}/structure-rule`,'POST');await waitJob(job.job_id);}
+    if(button.dataset.action==='structure'){button.disabled=true;const job=await api(`/memories/${button.dataset.id}/structure-rule`,'POST',{}, {'Idempotency-Key':key()});await waitJob(job.job_id);}
     if(button.dataset.action==='read-alert'){await api(`/alerts/${button.dataset.id}/read`,'PUT');await render();}
   }catch(e){button.disabled=false;error(e.message);}
 });

@@ -10,16 +10,24 @@ def enqueue_job(db, job_type, target_type, target_id, user_id, key):
     previous = db.scalar(select(Job).where(Job.idempotency_key == key))
     if previous:
         return previous
-    job = Job(
+    if db.bind.dialect.name == "postgresql":
+        from sqlalchemy.dialects.postgresql import insert
+    else:
+        from sqlalchemy.dialects.sqlite import insert
+    values = dict(
         job_type=job_type,
         target_type=target_type,
         target_id=target_id,
         user_id=user_id,
         idempotency_key=key,
     )
-    db.add(job)
-    db.flush()
-    return job
+    job = db.scalar(
+        insert(Job)
+        .values(**values)
+        .on_conflict_do_nothing(index_elements=[Job.idempotency_key])
+        .returning(Job)
+    )
+    return job if job is not None else db.scalar(select(Job).where(Job.idempotency_key == key))
 
 
 def claim_job(db, owner, now):

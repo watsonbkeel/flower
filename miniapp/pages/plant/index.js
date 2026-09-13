@@ -33,7 +33,7 @@ Page({data: {plant: {}, profile: null, candidates: [], selected: -1, commonName:
       scientific_name: manual ? this.data.scientificName : candidate.scientific_name,
       input_method: manual ? 'manual' : 'recognition', confidence: manual ? null : candidate.confidence});
   }); },
-  generate() { this.action(async () => { const job = await api.request(`/plants/${this.data.plant.id}/care-profile/generate`, 'POST'); wx.setStorageSync('job:' + this.data.plant.id, job.job_id); this.setData({jobText: '等待处理'}); }); },
+  generate() { this.action(async () => { const job = await api.request(`/plants/${this.data.plant.id}/care-profile/generate`, 'POST', {}, {'Idempotency-Key': api.key()}); wx.setStorageSync('job:' + this.data.plant.id, job.job_id); this.setData({jobText: '等待处理'}); }); },
   confirmCare() { this.action(() => api.request(`/plants/${this.data.plant.id}/care-profile/confirm`, 'POST', {profile_id: this.data.profile.id})); },
   copySource(event) { wx.setClipboardData({data: event.currentTarget.dataset.url}); }
 });

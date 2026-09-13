@@ -1,0 +1,77 @@
+TAP version 13
+# Subtest: every native template handler exists
+ok 1 - every native template handler exists
+  ---
+  duration_ms: 8.502256
+  type: 'test'
+  ...
+# Subtest: memory job errors are handled and polling resumes on show
+ok 2 - memory job errors are handled and polling resumes on show
+  ---
+  duration_ms: 1.245882
+  type: 'test'
+  ...
+# Subtest: native care page exposes weather freshness and source independently of knowledge
+ok 3 - native care page exposes weather freshness and source independently of knowledge
+  ---
+  duration_ms: 20.662738
+  type: 'test'
+  ...
+# Subtest: new care and memory actions use distinct request keys
+not ok 4 - new care and memory actions use distinct request keys
+  ---
+  duration_ms: 1.298697
+  type: 'test'
+  location: '/root/flower/miniapp/tests/pages.test.js:53:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'Idempotency-Key')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (/root/flower/miniapp/tests/pages.test.js:71:29)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pending and claimed never mean watering complete
+ok 5 - pending and claimed never mean watering complete
+  ---
+  duration_ms: 0.98636
+  type: 'test'
+  ...
+# Subtest: data coverage and demo sources stay visible
+ok 6 - data coverage and demo sources stay visible
+  ---
+  duration_ms: 0.292183
+  type: 'test'
+  ...
+# Subtest: uncertain status disables manual watering
+ok 7 - uncertain status disables manual watering
+  ---
+  duration_ms: 0.25111
+  type: 'test'
+  ...
+# Subtest: chart points retain time gaps and sources
+ok 8 - chart points retain time gaps and sources
+  ---
+  duration_ms: 0.253609
+  type: 'test'
+  ...
+# Subtest: weather preserves zero readings and distinguishes absent, stale and mismatched data
+ok 9 - weather preserves zero readings and distinguishes absent, stale and mismatched data
+  ---
+  duration_ms: 18.942619
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.576372

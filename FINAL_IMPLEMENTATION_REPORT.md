@@ -31,13 +31,14 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 
 | 命令/范围 | 结果 | 证据 |
 |---|---|---|
-| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-weather-postgres.xml` | PASS，166项 | [PostgreSQL回归](evidence/stage8-weather-postgres.xml) |
+| `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --junitxml=evidence/stage8-job-retry-postgres.xml` | PASS，170项 | [PostgreSQL回归](evidence/stage8-job-retry-postgres.xml) |
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
-| `npm --prefix miniapp test` | PASS，8项 | [Node执行记录](evidence/stage8-weather-ui-green.tap) |
+| `npm --prefix miniapp test` | PASS，9项 | [Node执行记录](evidence/stage8-job-retry-node-green.tap) |
 | Playwright桌面1440x1000、手机390x844六页面/图像/canvas/溢出 | PASS，Mock | [浏览器检查](evidence/stage5-browser.json) |
 | 浏览器pending到succeeded、养护确认、记忆规则、自动开关 | PASS，Mock | [工作流](evidence/stage8-browser-workflow.json) |
 | 天气零值/过期/缺失、独立来源标签、刷新保留输入，桌面/手机 | PASS，Mock | [天气UI](evidence/stage8-weather-browser.json)、[复核说明](evidence/stage8-weather-ui.md) |
+| 慢任务失败后重新操作、同键重放、并发入队、浏览器重试 | PASS，Mock/独立PG/SQLite | [任务复核](evidence/stage8-job-retry.md) |
 | DB+uploads+manifest独立恢复、校验和与保留策略 | PASS，真实独立PG | [恢复测试](tests/test_delivery.py)、[Stage 7](evidence/stage7-postgres.xml) |
 | 后端/Pi依赖审计 | PASS，无已知漏洞 | [backend](evidence/backend-dependency-audit.json)、[Pi](evidence/pi-dependency-audit.json) |
 | Ruff及`git diff --check` | PASS | [Stage 8说明](evidence/stage8.md) |
@@ -142,6 +143,8 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 天气缓存不再只随养护卡生成更新。Worker为最新已确认有效养护卡的缺失/过期天气创建幂等刷新job，失败最多尝试3次，每小时最多新建一组尝试；已有活跃job不重复入队。网络请求在独立作业进程执行，写回前复核养护卡、地点和数据来源。过期、未来时间、格式错误或来源不匹配的天气不参与降雨判断，也不覆盖已有缓存。真实Provider验收仍待B04。
 
 原生小程序与浏览器预览共用天气展示规则：0°C和0mm正确保留，缺失值不填0；过期、时间异常、来源不匹配明确标示且隐藏当前读数。天气来源与养护知识来源独立显示，并标出观测时间。浏览器天气定时刷新只更新环境区域，不清空品种确认表单。
+
+养护研究与记忆整理以每次用户操作的请求键去重，不再被资源更新时间绑定到旧的失败job。相同请求键重放返回原job；新操作创建新job并保留失败历史。通用作业入队使用数据库原子冲突处理，8个并发同键请求只写入一条job。重新生成养护卡仍产生待确认的新版本，不自动替换已确认知识。
 
 小时聚合按设备、植物、UTC小时和来源隔离；仅完整小时入库。清理前复核样本数、覆盖时间、平均/极值和水位比，30天raw/365天hourly下限受配置约束。晚到已清理小时的数据保留待核验，不覆盖旧聚合。被植物/记忆引用的图片长期保留。
 
