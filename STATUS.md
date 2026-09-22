@@ -16,6 +16,7 @@
 - 首次 `e679b65` release 已部署并完成显式迁移 `0003_retention`，公网 HTTPS 健康与鉴权验证通过；生产备份/独立恢复暴露 proxy 解析旧 API 地址造成 502。已重启 proxy 恢复服务，并在开发代码修复动态 DNS；待新 SHA 发布并重复恢复验收。证据：`evidence/deploy/2026-09-22-first-release.md`。
 - 修复版 `9ed1627` 已部署且复核备份后的公网 `/ready=200`；生产库 `0003_retention`、四服务健康、HTTPS 证书与模拟续期、定时备份执行及独立恢复通过。轮转测试发现同日跨 release 备份被过早清理，修复已在开发代码完成，待下一 SHA 生产复核。证据：`evidence/deploy/2026-09-22-production-acceptance.md`。
 - 原生微信客户端改为正式 HTTPS 和真实 wx.login 默认值；无教育版 AppID/AppSecret/控制台和真实 Provider 网关凭据，仍需用户输入；不会把 Mock 服务标为真实 AI。
+- 生产当前 release 为 `208d0548ec7b9db27aa8e94c14412dbd7f466d1e`；连续两次定时备份后跨 release 保留有效，最新归档已独立恢复；无构建短时切旧版并切回，新版现行。最后验收见 `evidence/deploy/2026-09-22-final-release.md`。完整 GOAL 仍因 `BLOCKERS.md` 中真实AI/微信/硬件/异地备份/语音高峰受阻。
 
 ## 已完成
 
@@ -55,7 +56,8 @@
 
 ## 下一步
 
-- [ ] 生产授权窗口：Docker/Compose/Nginx/DNS/TLS/备份timer/回滚/共存高峰验证
+- [x] 授权生产部署：Docker/Compose/Nginx/DNS/TLS/定时备份/独立恢复/无构建短时回滚及空闲状态共存检查
+- [ ] aibot 真实语音高峰、VPN客户端端到端与异地灾备验收
 - [ ] 微信平台与真实Provider配置、原生DevTools/手机验证
 - [ ] 真实Pi安装、标定、防虹吸、缺水/断网/kill/相机BLE压力及真实遥测
 
@@ -65,7 +67,7 @@
 
 - `evidence/stage0-red.xml`：实现前预期失败（模块尚不存在）。
 - `evidence/stage0-green.xml`：开发自动化验证；SQLite仅用于本阶段迁移/探针测试，不代表PostgreSQL或Compose运行通过。
-- 未重复全面服务器审计，未执行preflight或任何生产修改。
+- 历史开发阶段未执行生产修改；本轮授权发布与实时preflight另见 `evidence/deploy/`。
 - `evidence/stage1-green.xml`：67 passed，含缺水20次禁泵、20次重启保额、独立定时器关泵、>60秒会话及会话超时。
 - Stage 1中的常驻采集/云客户端与安装诊断工具将在Stage 2接入实际设备合约后完成；真实Pi安装、BLE/摄像头压力与物理标定均BLOCKED_PHYSICAL。
 - Stage 2已接入Pi常驻循环、云客户端、配置/安装/诊断工具，均未在实物安装。

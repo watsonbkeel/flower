@@ -1,0 +1,12 @@
+# 生产终检：v2.2.2 / 208d0548ec7b9db27aa8e94c14412dbd7f466d1e
+
+- `PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest -q`: exit 0，225 passed，1条Starlette弃用警告；`npm test`（miniapp）: exit 0，14 passed。新保留策略的同日跨 release 断言先 exit 1 再 exit 0。
+- `docker build -t flower-app:<sha> backend`、`scripts/release.py --inspect-images`、`FLOWER_PRODUCTION_AUTHORIZED=1 .venv/bin/python scripts/production.py deploy /srv/flower/releases/<sha>`：均 exit 0，发布检查等待 PG/API/Worker 健康，显式 Alembic upgrade head，不在入口自动迁移。当前 `/srv/flower/current -> /srv/flower/releases/208d0548ec7b9db27aa8e94c14412dbd7f466d1e`，生产 migration `0003_retention`。
+- 当前 release image ID：app `sha256:1345b3b630d78a993de0015832fc87ed474c39b63c5d61cc586bd4572f1db9a3`，postgres `sha256:212aeeeb8faaef6c46498d86cbec6b9344d8d9492996b174664ff82c562ab685`，proxy `sha256:4a0915357175dbe21d4a8a05fd0438580f6dbb950011b8f3e6495551ab22408f`。不可变标签和ID记录在 release.json；无 `latest`。镜像归档 SHA256 `c81f49ccdb15dfce2287bdf96a6621e98dac691ea658467bb5f471aedf9bea5b`，`docker save`、`docker load` 均 exit 0。
+- `systemctl start flower-backup.service` 两次均 exit 0；同日归档轮转后，旧版 `9ed1627...` 的最新备份 `20260922T144451Z-146e06f5` 和新版 `208d054...` 的最新备份 `20260922T150052Z-920a1db2` 均存在；前一次同版备份被正常清理。最终归档独立恢复至新库 `flower_restore_final` exit 0，`0003_retention`、公共表19张；`verified-backup.json` 指向该仍在的归档。当前生产没有用户图片，生产上传目录为空，不能用这次恢复声称实有图片恢复通过；开发测试验证过非空图片字节。
+- `scripts/production.py rollback` 不构建、不拉取、不开 migration：切至 `9ed1627...` exit 0，公网 `/health` 软件版本相应变化、`/ready` 200；立即切回 `208d054...` exit 0，`/health` 版本正确、`/ready` 200、migration仍为 `0003_retention`。上一 release 的轮转脚本有已知缺陷，因此演练证明短时无构建切换及恢复，不证明旧版可长期运行。
+- 公网 `https://flower.bkeel.com/health` 和 `/ready` 均 HTTP 200、证书链 TLS 验证成功，正式域名解析 `43.161.224.25`；无鉴权植物/图片接口 HTTP 401，伪 Mock 微信码 HTTP 503 `WECHAT_NOT_CONFIGURED`。certbot webroot 续期 dry-run exit 0；下次 certbot.timer 与 Flower 专属证书 deploy hook 已安装。证书到期 2026-12-21。
+- Docker inspect：API 与 PostgreSQL 无宿主 PublishedPorts；Flower proxy 唯一映射 `127.0.0.1:18080->8080`。Nginx 保持唯一公网 80/443；`https://cs.bkeel.com/` HTTP 200/TLS通过；nginx/nox-brain/city-front/tailscaled/openvpn-server@server/ssh/flower-backup.timer 均 active，Tailscale BackendState=Running，UFW active。没有主动 aibot 语音测试或外部 VPN 客户端连通测试。
+- 未发现 Flower 专用 Provider URL/key、微信 AppID/AppSecret；生产 `PROVIDER_MODE=mock`，`DEV_MODE=false`、`DEV_AUTH_BYPASS=false`，平台真机与真实 AI 均 BLOCKED。未接实物Pi/泵，未发生任何真实 GPIO 控制。没有异地备份目标，灾备仍 BLOCKED。
+
+真实数据与硬件验收状态见 `BLOCKERS.md`；原始网络/备份/密钥仅存于本机私有目录。

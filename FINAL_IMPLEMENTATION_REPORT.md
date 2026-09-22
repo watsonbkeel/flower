@@ -2,12 +2,12 @@
 
 ## 1. 交付摘要
 
-- 最终状态：**HARD_BLOCKED**。开发/Mock验收已交付，完整GOAL尚未完成。
+- 最终状态：**HARD_BLOCKED**。云端生产部署已验证；真实Provider、微信真机、异地备份及实物验收仍受阻，完整GOAL尚未完成。
 - 分支：`feat/flower-v2.2.2`；交付commit为本报告所在提交，可用`git rev-parse HEAD`查询。
 - 规格：v2.2.2 Server-Integrated。
 - SHA-256：`4481d48605aec47660d2cdefb7a004ed2169bb8531302ecdf803c3c12718cf95`，冻结文档未修改。
 - 开发地址：`http://127.0.0.1:18082/preview/`，只监听环回，明确Mock设备/数据。
-- 生产地址、应用镜像ID、生产release目录、Pi运行版本：**未部署/未取得证据**。
+- 生产地址：`https://flower.bkeel.com`；当前release：`/srv/flower/releases/208d0548ec7b9db27aa8e94c14412dbd7f466d1e`；镜像ID及证据见`evidence/deploy/2026-09-22-final-release.md`；Pi实物运行版本未取得。
 - 小程序源码：`miniapp`，版本2.2.2；真实微信DevTools/手机未验收。
 - 源码Stage提交：0 `eb90011`，1 `9491260`，2 `82ef59a`，3 `8c649c7`，4 `31959ac`，5 `183f75f`，6 `98f02c4`，7 `25455c5`，8 `7b32770`；交付复核修复见本报告所在提交。
 
@@ -25,9 +25,9 @@ Pi包含ADS1115、P451、GPIO17、SHT30/被动ATC1441 BLE及USB相机适配、�
 
 ## 3. 共享宿主机边界
 
-未修改`/root/aibot`、`/opt/asist-embodiment`或`/srv/flower`，未安装Docker，未修改Nginx、UFW/nft、Tailscale、OpenVPN。没有重复全面服务器审计。
+未修改`/root/aibot`或`/opt/asist-embodiment`；aibot仍由原systemd运行。根据2026-09-22授权安装Docker/Compose，仅在`/srv/flower`部署Flower独立数据/配置/备份并新增Flower专属Nginx站点与证书。未手改UFW/nft、Tailscale、OpenVPN或City Front站点。没有重复全面服务器审计；安装与建Flower网络前后实时快照见`evidence/deploy/`。
 
-Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG不发布宿主端口。Nginx站点、备份timer、显式migration及SHA回滚脚本已准备。Docker运行/镜像构建、生产端口、Nginx语法、pre/post共存、上一镜像回滚全部仍待授权窗口验证。
+Compose项目为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG不发布宿主端口。四服务健康、证书续期演练、显式migration、生产备份/独立恢复、无构建短时回滚均有实际运行证据。真实语音高峰及VPN客户端端到端仍待验收。
 
 ## 4. 自动化证据
 
@@ -37,6 +37,7 @@ Compose模板为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 | Pi时钟恢复、回执分页及适配器定向测试 | PASS，14项；修复前6项失败 | [复核说明](evidence/stage8-recovery.md) |
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
 | `npm --prefix miniapp test` | PASS，13项 | [Node执行记录](evidence/stage8-species-photo-node-green.tap) |
+| 本轮完整PostgreSQL回归、小程序原生测试 | PASS，225项Python、14项Node；含备份轮转失败测试先行 | [生产终检](evidence/deploy/2026-09-22-final-release.md) |
 | 识别候选排序、重拍选择清除、手动/候选切换、低置信度提示 | PASS，Mock，桌面/手机 | [识别确认](evidence/stage8-recognition.md) |
 | Playwright桌面1440x1000、手机390x844六页面/图像/canvas/溢出 | PASS，Mock | [浏览器检查](evidence/stage5-browser.json) |
 | 浏览器pending到succeeded、养护确认、记忆规则、自动开关 | PASS，Mock | [工作流](evidence/stage8-browser-workflow.json) |
@@ -69,15 +70,15 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 | ID | 状态 | 证据/限制 |
 |---|---|---|
 | SPEC-001 | PASS | 规格SHA、基础测试；未使用旧规格实现 |
-| HOST-001 | NOT_RUN | 未触碰aibot；生产pre/post哈希验证待窗口 |
-| HOST-002 | BLOCKED | Compose静态符合；宿主运行验证待B01 |
-| HOST-003 | BLOCKED | API/PG无模板ports；docker inspect待B01 |
-| HOST-004 | BLOCKED | 未执行Docker网络变更；共存回归待B01/B07 |
-| HOST-005 | BLOCKED | 并发1和资源限制已配置；运行预算待部署 |
+| HOST-001 | PASS | aibot目录未修改，systemd服务保持active；无真实语音高峰证据 |
+| HOST-002 | PASS | 独立flower-prod Compose四服务及Nginx入口实际健康 |
+| HOST-003 | PASS | docker inspect确认仅proxy发布环回18080 |
+| HOST-004 | BLOCKED | 前后快照及闲时共存通过；真实VPN客户端/语音高峰待B07 |
+| HOST-005 | BLOCKED | Worker并发1与资源预算已部署；高峰容量待B07 |
 | AUTH-001 | PASS | production鉴权绕过拒绝测试 |
 | AUTH-002 | PASS | production非HTTPS拒绝测试 |
 | NET-001 | PASS | 客户端TLS验证开启，HTTP只允许开发环回 |
-| NET-002 | BLOCKED | 正式DNS/TLS/Pi请求待B02/B05 |
+| NET-002 | BLOCKED | DNS/TLS和公网API通过；Pi实物HTTPS请求待B05 |
 | VOICE-001 | PASS | 泵驱动调用边界静态测试；无aibot接入 |
 | STATE-001 | BLOCKED | SAFE_HOLD所有来源Mock拒绝；实物待B05 |
 | CMD-001 | PASS | pending领取截止与独立启动宽限期测试 |
@@ -85,13 +86,13 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 | DB-001 | PASS | 真实PG主控植物部分唯一索引拒绝违规 |
 | DB-002 | PASS | 真实PG活跃补水部分唯一索引及100并发领取仅1成功 |
 | MIG-001 | PASS | API/Worker无自动migration；开发启动器显式运行 |
-| MIG-002 | BLOCKED | 生产显式job脚本已准备，未部署 |
-| REL-001 | BLOCKED | SHA清单工具已验证，镜像未构建 |
-| REL-002 | BLOCKED | 无build回滚脚本已准备，尚无上一生产镜像 |
+| MIG-002 | PASS | 生产显式migration执行，当前head `0003_retention` |
+| REL-001 | PASS | 固定SHA镜像已构建，清单记录实际ID和归档校验和 |
+| REL-002 | PASS | 两版间无构建切换并恢复；旧版存在轮转缺陷，不作长期回滚目标 |
 | HEALTH-001 | PASS | /health独立存活探针测试 |
 | HEALTH-002 | PASS | /ready检查DB和migration head |
-| BACKUP-001 | BLOCKED | 三类数据备份与保留测试通过；生产timer未安装 |
-| BACKUP-002 | PASS | 独立新PG库恢复schema、业务哨兵和图片字节 |
+| BACKUP-001 | PASS | 生产timer启用并触发，同日两release备份保留验证通过；仅本机 |
+| BACKUP-002 | PASS | 生产最新空业务库恢复19张表；开发非空图片及哨兵另有测试 |
 | BACKUP-003 | BLOCKED | B06，无异地目的地 |
 | PERF-001 | NOT_RUN | 仅开发SQLite p95 39.26ms；生产设备接口待测 |
 | PERF-002 | BLOCKED | B07，无aibot高峰/语音基线对照 |
@@ -113,8 +114,8 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 
 | DoD | 结果 | 对照 |
 |---|---|---|
-| 1 Docker一键部署 | BLOCKED | B01，只有模板/脚本 |
-| 2 API/Worker健康 | BLOCKED | 开发已运行；生产尚未部署 |
+| 1 Docker一键部署 | PASS | 独立Compose四服务上线、固定SHA release |
+| 2 API/Worker健康 | PASS | 生产健康探针、备份重启后公网ready200 |
 | 3 Pi自启动 | BLOCKED | systemd文件已有，实物未安装 |
 | 4 ADS1115/P451/YYMOS/泵可用 | BLOCKED | 仅适配/Mock |
 | 5 三项标定 | BLOCKED | B05/B08 |
@@ -137,7 +138,7 @@ PASS只覆盖本行注明的类型；包含部署/实物要求的条目不会以
 | 22 两个部分唯一索引 | PASS | PostgreSQL违规写入/并发测试 |
 | 23 图片/聚合/清理 | PASS | 低空间、来源隔离、校验后删除 |
 | 24 双账本对账测试 | PASS | API与SQLite完整往返、篡改/迟到/时间测试 |
-| 25 空环境部署手册 | NOT_RUN | README/runbook完整；独立生产部署待授权 |
+| 25 空环境部署手册 | PASS | 首次空库经备份恢复、显式迁移、发布验证；异地灾备另见B06 |
 
 开泵前持久预扣、缺水/传感器/时钟/模式故障中途关泵、独立watchdog、跨重启保额均通过Mock故障测试。GPIO读回不是电流测量，普通单向阀不作为正向防虹吸装置。
 
@@ -173,16 +174,16 @@ Worker持续维护主控植物的有效fallback策略，默认提前86400秒续�
 
 ## 8. 备份、发布与回滚
 
-`scripts/backup.py`打包PG custom dump、uploads、release manifest和校验和，保留7份日备份/4份周备份。恢复只允许新建`flower_restore_*`测试库及新的图片目录，不覆盖现有DB。生产备份停止Flower写入进程的模板尚未运行。
+`scripts/backup.py`打包PG custom dump、uploads、release manifest和校验和，保留7份日备份/4份周备份，并额外保护最近两个release的最新备份。恢复只允许新建`flower_restore_*`测试库及新的图片目录，不覆盖现有DB。生产timer已经手动触发并验证独立恢复；尚无异地目的地。生产图片目录当前为空，非空图片恢复只在开发测试证明。
 
 `scripts/release.py`从干净commit导出源码和清单；未构建明确为NOT_BUILT。完成镜像构建后记录实际ID，生产脚本核验文件/镜像和近期恢复证明，migration显式执行。回滚使用上一SHA且`--no-build --pull never`，不自动alembic downgrade。
 
-`scripts/deploy.sh`提供规格要求的发布入口，沿用生产授权门。启动PG后等待Compose健康再运行迁移，随后等待API/Worker健康；失败不推进current链接。已验证顺序、故障退出和未授权拒绝，Compose仅用模拟调用验证，实际Docker/容器启动仍未运行。见`evidence/stage8-deployment-sequence.md`。
+`scripts/deploy.sh`提供规格要求的发布入口，沿用生产授权门。实际发布先等待PG健康、执行显式migration，再等待API/Worker健康后原子切换current；无构建双向回滚演练通过。首次备份发现静态DNS导致API重启后502，已以动态解析修复并实际复验；随后发现同日轮转删除跨release备份，已修复并两次触发timer验证。证据见`evidence/deploy/2026-09-22-final-release.md`。
 
 ## 9. 尚未完成与恢复路径
 
-剩余硬阻塞为`BLOCKERS.md` B01-B09：生产窗口、DNS/TLS、微信配置/DevTools、真实Provider、实物与标定规则、异地备份及共享宿主高峰验证。尤其B08为冻结规格内部1秒maintenance上限与10秒流量标定要求的矛盾，只暂停实际标定开泵路径。
+已解除B01生产授权和B02 DNS/TLS。剩余`BLOCKERS.md` B03/B04/B05/B06/B07/B08/B09：微信教育版控制台/真机、真实Provider网关与预算、实物与标定规则、异地备份及共享宿主真实语音高峰。B08冻结规格内部1秒maintenance上限与10秒流量标定要求的矛盾只暂停实际标定开泵路径。
 
-下一步无需重做服务器全面审计。获得明确生产授权后按`docs/DEPLOYMENT_RUNBOOK.md`采集当次preflight、备份/恢复证明并执行发布；硬件按`docs/OFFLINE_DEMO.md`补采测量。凭据通过配置注入，禁止进入Git。
+下一步无需重做服务器全面审计或重复已验生产发布。外部凭据经`/srv/flower/shared/config/production.env`注入后重新运行真实Provider/微信联调并验收；硬件按`docs/OFFLINE_DEMO.md`补采测量；B06提供异地备份目的地。生产保持Mock Provider直到真实服务证据成立，凭据禁止进入Git。
 
 开发复验命令：`PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest`。完整生产和实物Definition of Done满足之前，终态保持HARD_BLOCKED。
