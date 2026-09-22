@@ -17,6 +17,7 @@
 - 修复版 `9ed1627` 已部署且复核备份后的公网 `/ready=200`；生产库 `0003_retention`、四服务健康、HTTPS 证书与模拟续期、定时备份执行及独立恢复通过。轮转测试发现同日跨 release 备份被过早清理，修复已在开发代码完成，待下一 SHA 生产复核。证据：`evidence/deploy/2026-09-22-production-acceptance.md`。
 - 原生微信客户端改为正式 HTTPS 和真实 wx.login 默认值；无教育版 AppID/AppSecret/控制台和真实 Provider 网关凭据，仍需用户输入；不会把 Mock 服务标为真实 AI。
 - 生产当前 release 为 `208d0548ec7b9db27aa8e94c14412dbd7f466d1e`；连续两次定时备份后跨 release 保留有效，最新归档已独立恢复；无构建短时切旧版并切回，新版现行。最后验收见 `evidence/deploy/2026-09-22-final-release.md`。完整 GOAL 仍因 `BLOCKERS.md` 中真实AI/微信/硬件/异地备份/语音高峰受阻。
+- GitHub `https://github.com/watsonbkeel/flower.git` 当前公开空仓库已配置为 origin；HTTPS push 缺本机写凭据、SSH publickey 被拒，B10 待用户配置。完整 Git bundle 与教育版小程序导入 ZIP 已在忽略的 `.runtime/` 准备，不含生产秘密和未跟踪的启动文档。
 
 ## 已完成
 

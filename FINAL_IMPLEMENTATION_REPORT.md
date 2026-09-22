@@ -182,7 +182,7 @@ Worker持续维护主控植物的有效fallback策略，默认提前86400秒续�
 
 ## 9. 尚未完成与恢复路径
 
-已解除B01生产授权和B02 DNS/TLS。剩余`BLOCKERS.md` B03/B04/B05/B06/B07/B08/B09：微信教育版控制台/真机、真实Provider网关与预算、实物与标定规则、异地备份及共享宿主真实语音高峰。B08冻结规格内部1秒maintenance上限与10秒流量标定要求的矛盾只暂停实际标定开泵路径。
+已解除B01生产授权和B02 DNS/TLS。剩余`BLOCKERS.md` B03/B04/B05/B06/B07/B08/B09/B10：微信教育版控制台/真机、真实Provider网关与预算、实物与标定规则、异地备份、共享宿主真实语音高峰及GitHub写凭据。B08冻结规格内部1秒maintenance上限与10秒流量标定要求的矛盾只暂停实际标定开泵路径。GitHub origin 已配置，但 HTTPS push 因本机无写凭据 exit 128，SSH publickey 被拒 exit 255；源码已在本地提交并生成完整 bundle。
 
 下一步无需重做服务器全面审计或重复已验生产发布。外部凭据经`/srv/flower/shared/config/production.env`注入后重新运行真实Provider/微信联调并验收；硬件按`docs/OFFLINE_DEMO.md`补采测量；B06提供异地备份目的地。生产保持Mock Provider直到真实服务证据成立，凭据禁止进入Git。
 

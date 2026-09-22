@@ -12,6 +12,7 @@
 | B06 | 异地备份目标与可用访问方式 | 本机备份恢复通过，异地灾备验收 | BLOCKED_EXTERNAL |
 | B07 | 用户发起的 aibot 真实语音高峰测试时段 | 共存容量和真实语音延迟最终验收 | BLOCKED_EXTERNAL |
 | B09 | 微信教育版控制台合法 request/upload/download 域名、真实 AppID 导入、DevTools、手机授权/发布 | 原生小程序登录、发布和订阅消息端到端验收 | BLOCKED_EXTERNAL |
+| B10 | 本机缺少 GitHub 仓库写权限凭据 | 将已提交的代码和证据推送到 `watsonbkeel/flower` 的 main | BLOCKED_EXTERNAL |
 
 开发代理应先用 Mock/独立测试环境推进，不得把这些未完成项伪装成 PASS。
 
@@ -21,6 +22,7 @@
 - B04：用户选定 Flower 专用四类真实服务和调用预算，提供规范化 HTTPS 网关的 URL、key、模型/额度及 `/recognize`、`/search`、`/structure`、`/weather` 契约；若仅有厂商原生 API，提供厂商名称、接口/权限/模型资料以实现适配。通过生产私有配置注入；不得引用 aibot 私有凭据。
 - B05/B08：用户连接实物并提供标定/防虹吸测量记录，明确规格内部1秒维护上限与10秒流量标定的矛盾。任何实际开泵前必须解决。
 - B06/B07：提供可用异地备份位置及密钥注入方式，并安排用户自己操作的 aibot 真实语音高峰窗口；当前服务 active/空闲检查不代替远端备份和语音体验证据。
+- B10：用户在本机配置对此仓库有写权限的 HTTPS credential helper/PAT 或 GitHub SSH key；无需在聊天发送密钥。配置后运行 `GIT_TERMINAL_PROMPT=0 git push origin HEAD:refs/heads/main`。目前 `git ls-remote origin HEAD` 无提交，HTTPS push 因无用户名 exit 128，SSH 验证因无 publickey exit 255；源码 bundle 另在 `.runtime/flower-source-final.bundle`。
 
 没有真实设备，因此Stage 2当天真实遥测未能开始，当前不能提交真实七天趋势、防虹吸、滴漏或kill后电流恢复证据。
 
