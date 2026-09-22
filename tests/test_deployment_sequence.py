@@ -77,3 +77,9 @@ def test_worker_health_failure_is_not_reported_as_success():
 
     with pytest.raises(subprocess.CalledProcessError):
         production().activate_services(unhealthy_worker, "deploy")
+
+
+def test_proxy_resolves_api_again_after_container_restart():
+    config = Path("nginx/default.conf").read_text()
+    assert "resolver 127.0.0.11" in config
+    assert "proxy_pass http://$api_upstream" in config

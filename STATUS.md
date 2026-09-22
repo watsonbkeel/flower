@@ -13,6 +13,7 @@
 - Docker 26.1.5、Compose 2.26.1 已安装；安装前后 `nginx`、`nox-brain`、`city-front`、`tailscaled`、`openvpn-server@server` 和 `ssh` 均 active；City Front HTTPS 返回 200，Tailscale 为 Running。
 - 开发回归：223项Python通过（1项上游弃用警告），13项Node通过。尚无生产 Compose/迁移/恢复证据，保持 HARD_BLOCKED。
 - 运行证据：`evidence/deploy/2026-09-22-preflight.md`；原始网络快照和备份保存在 `.runtime/`，权限 0600。
+- 首次 `e679b65` release 已部署并完成显式迁移 `0003_retention`，公网 HTTPS 健康与鉴权验证通过；生产备份/独立恢复暴露 proxy 解析旧 API 地址造成 502。已重启 proxy 恢复服务，并在开发代码修复动态 DNS；待新 SHA 发布并重复恢复验收。证据：`evidence/deploy/2026-09-22-first-release.md`。
 
 ## 已完成
 
