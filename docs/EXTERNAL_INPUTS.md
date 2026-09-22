@@ -13,7 +13,7 @@
 
 - 植物识别/搜索/天气/LLM Provider 与独立项目 Key
 - 微信 AppID/AppSecret、订阅消息模板
-- `flower-api.bkeel.com` DNS/TLS
+- `flower.bkeel.com` DNS/TLS
 - 小米温湿度计型号/MAC/bindkey
 - 摄像头最终型号
 - 泵和土壤标定实测值

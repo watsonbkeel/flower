@@ -93,3 +93,23 @@ def test_release_requires_full_commit_and_immutable_images():
         release.validate_manifest(
             {"commit": "a" * 40, "images": {"app": {"tag": "flower-app:latest"}}}
         )
+
+
+def test_release_ignores_untracked_local_instructions_but_rejects_tracked_edits(tmp_path):
+    import subprocess
+
+    spec = importlib.util.spec_from_file_location("flower_release", "scripts/release.py")
+    release = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(release)
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    tracked = tmp_path / "tracked"
+    tracked.write_text("committed")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "tracked"], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-qm", "initial"],
+        check=True,
+    )
+    (tmp_path / "LOCAL_INSTRUCTIONS.md").write_text("keep private")
+    assert release.has_tracked_changes(tmp_path) is False
+    tracked.write_text("modified")
+    assert release.has_tracked_changes(tmp_path) is True

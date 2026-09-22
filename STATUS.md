@@ -4,7 +4,15 @@
 - 当前 Stage：8（开发与Mock交付已归档）
 - 实现状态：HARD_BLOCKED
 - 架构审计：COMPLETE（只读，2026-09-13）
-- 最近更新：2026-09-13
+- 最近更新：2026-09-22
+
+## 2026-09-22 生产恢复进行中
+
+- `PROMPT_NEXT_PHASE.md` 授权范围内开始发布；安装前私有快照和 Nginx/证书备份已采集，不进入 Git。
+- DNS 实际解析 `flower.bkeel.com -> 43.161.224.25`；HTTPS 尚未验收。
+- Docker 26.1.5、Compose 2.26.1 已安装；安装前后 `nginx`、`nox-brain`、`city-front`、`tailscaled`、`openvpn-server@server` 和 `ssh` 均 active；City Front HTTPS 返回 200，Tailscale 为 Running。
+- 开发回归：223项Python通过（1项上游弃用警告），13项Node通过。尚无生产 Compose/迁移/恢复证据，保持 HARD_BLOCKED。
+- 运行证据：`evidence/deploy/2026-09-22-preflight.md`；原始网络快照和备份保存在 `.runtime/`，权限 0600。
 
 ## 已完成
 

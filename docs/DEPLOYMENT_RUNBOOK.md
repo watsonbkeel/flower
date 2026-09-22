@@ -61,14 +61,14 @@ df -hT /
 5. **显式一次性 migration**：`docker compose ... run --rm api alembic upgrade head`。API/Worker entrypoint 不执行 migration。
 6. migration 成功后启动 `api`、`worker`、`proxy`，同样等待Compose健康状态。API或Worker不健康时退出，不能仅凭API HTTP响应认定发布成功。
 7. 验证 `127.0.0.1:18080/health` 与 `/ready`。
-8. 若是首次公网接入，在独立授权窗口写入 `flower-api.bkeel.com` Nginx server block，先 `nginx -t`，再 reload。
+8. 若是首次公网接入，写入 `flower.bkeel.com` 独立 Nginx server block，先 `nginx -t`，再 reload。
 9. 从外部验证 HTTPS、设备 auth、图片上传限制和小程序 API。
 10. 保存发布日志到 `evidence/deploy/<git-sha>/`。
 
 ## 6. 宿主 Nginx
 
 - 继续独占 80/443，不安装 Caddy 抢端口。
-- 独立 `server_name flower-api.bkeel.com`，代理 `http://127.0.0.1:18080`。
+- 独立 `server_name flower.bkeel.com`，代理 `http://127.0.0.1:18080`。
 - 不修改 `cs.bkeel.com` 既有路由语义。
 - Flower 图片路径代理允许至少 10MiB + multipart 开销；业务层仍硬限制 10MiB。
 - `/health`、`/ready` 位于根路径，不带 `/api/v1`。

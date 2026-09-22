@@ -18,7 +18,7 @@ services:
       APP_ENV: ${APP_ENV:-production}
       DATABASE_URL: ${DATABASE_URL:?set independent database URL}
       SECRET_KEY: ${SECRET_KEY:?set independent signing key}
-      APP_BASE_URL: ${APP_BASE_URL:-https://flower-api.bkeel.com}
+      APP_BASE_URL: ${APP_BASE_URL:-https://flower.bkeel.com}
       DEV_MODE: ${DEV_MODE:-false}
       DEV_AUTH_BYPASS: ${DEV_AUTH_BYPASS:-false}
       UPLOAD_DIR: /data/uploads

@@ -26,14 +26,18 @@ def validate_manifest(manifest):
         raise ValueError("all release images required")
 
 
+def has_tracked_changes(root):
+    return bool(subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"], cwd=root).strip())
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--inspect-images", action="store_true")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    if subprocess.check_output(["git", "status", "--porcelain"], cwd=root).strip():
-        raise SystemExit("Commit changes before generating a release bundle")
+    if has_tracked_changes(root):
+        raise SystemExit("Commit tracked changes before generating a release bundle")
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     release = args.output.resolve() / sha
     if release.is_relative_to(Path("/srv/flower")):

@@ -74,7 +74,7 @@ PYTHONPATH=backend .venv/bin/python scripts/test_postgres.py .venv/bin/pytest --
 - aibot 保持 `/opt/asist-embodiment` + systemd，不由 Flower 项目修改。
 - Flower 独立 Compose：`proxy/api/worker/postgres`。
 - 宿主 Nginx 继续占用 80/443；Flower 只发布 `127.0.0.1:18080`。
-- 建议正式域名：`flower-api.bkeel.com`。
+- 正式域名：`flower.bkeel.com`。
 - 开发仓库：`/root/flower`；生产：`/srv/flower`。
 
 ## 启动
