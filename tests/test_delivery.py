@@ -83,6 +83,25 @@ def test_backup_retention_keeps_seven_daily_and_four_weekly(tmp_path):
     assert all((tmp_path / f"b-{i:02}").exists() for i in range(7))
 
 
+def test_backup_retention_preserves_latest_snapshot_for_two_releases(tmp_path):
+    from datetime import datetime, timedelta, timezone
+
+    backup = module()
+    now = datetime(2026, 9, 22, 12, tzinfo=timezone.utc)
+    releases = ["a" * 40, "b" * 40, "a" * 40]
+    for index, sha in enumerate(releases):
+        path = tmp_path / f"b-{index}"
+        path.mkdir()
+        (path / "metadata.json").write_text(
+            json.dumps({"created_at": (now - timedelta(minutes=index)).isoformat()})
+        )
+        (path / "release.json").write_text(json.dumps({"commit": sha}))
+    kept = backup.retention(tmp_path)
+    assert tmp_path / "b-0" in kept
+    assert tmp_path / "b-1" in kept
+    assert tmp_path / "b-2" not in kept
+
+
 def test_release_requires_full_commit_and_immutable_images():
     spec = importlib.util.spec_from_file_location("flower_release", "scripts/release.py")
     release = importlib.util.module_from_spec(spec)

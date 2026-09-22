@@ -2,6 +2,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+test('native client uses the production HTTPS API and real WeChat login', () => {
+  const config = require('../config');
+  assert.equal(config.baseUrl, 'https://flower.bkeel.com');
+  assert.equal(config.mockLogin, false);
+});
 test('every native template handler exists', () => {
   for (const name of fs.readdirSync('pages')) {
     let page;

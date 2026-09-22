@@ -14,6 +14,8 @@
 - 开发回归：223项Python通过（1项上游弃用警告），13项Node通过。尚无生产 Compose/迁移/恢复证据，保持 HARD_BLOCKED。
 - 运行证据：`evidence/deploy/2026-09-22-preflight.md`；原始网络快照和备份保存在 `.runtime/`，权限 0600。
 - 首次 `e679b65` release 已部署并完成显式迁移 `0003_retention`，公网 HTTPS 健康与鉴权验证通过；生产备份/独立恢复暴露 proxy 解析旧 API 地址造成 502。已重启 proxy 恢复服务，并在开发代码修复动态 DNS；待新 SHA 发布并重复恢复验收。证据：`evidence/deploy/2026-09-22-first-release.md`。
+- 修复版 `9ed1627` 已部署且复核备份后的公网 `/ready=200`；生产库 `0003_retention`、四服务健康、HTTPS 证书与模拟续期、定时备份执行及独立恢复通过。轮转测试发现同日跨 release 备份被过早清理，修复已在开发代码完成，待下一 SHA 生产复核。证据：`evidence/deploy/2026-09-22-production-acceptance.md`。
+- 原生微信客户端改为正式 HTTPS 和真实 wx.login 默认值；无教育版 AppID/AppSecret/控制台和真实 Provider 网关凭据，仍需用户输入；不会把 Mock 服务标为真实 AI。
 
 ## 已完成
 

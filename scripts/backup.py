@@ -157,13 +157,23 @@ def retention(destination):
             )
             candidates.append((created, path))
     candidates.sort(reverse=True)
-    days, weeks, kept = set(), set(), set()
+    days, weeks, kept, releases = set(), set(), set(), set()
     for created, path in candidates:
         day, week = created.date(), created.isocalendar()[:2]
         daily = day not in days and len(days) < 7
         weekly = week not in weeks and len(weeks) < 4
-        if daily or weekly:
+        release_file = path / "release.json"
+        commit = json.loads(release_file.read_text()).get("commit") if release_file.is_file() else None
+        release_snapshot = bool(
+            isinstance(commit, str)
+            and re.fullmatch(r"[0-9a-f]{40}", commit)
+            and commit not in releases
+            and len(releases) < 2
+        )
+        if daily or weekly or release_snapshot:
             kept.add(path)
+        if release_snapshot:
+            releases.add(commit)
         days.add(day)
         weeks.add(week)
     for _, path in candidates:
