@@ -113,7 +113,7 @@ production 必须使用有效 HTTPS 域名。
 
 初始 Worker 并发 1。与 aibot 共存验收至少记录 CPU、可用内存、I/O、Flower 快速接口 p95 和真实语音体验。目标：Flower 快速接口 p95 <500ms；aibot 真实对话性能相对其单独运行基线劣化不超过20%。无真实高峰样本时标 NOT_RUN/BLOCKED，不得伪称 PASS。
 
-## 12. 本仓库可执行工具（尚未生产运行）
+## 12. 本仓库可执行工具（已生产运行，操作前复核当前状态）
 
 - `scripts/release.py --output .runtime/releases` 从干净commit生成开发发布包，未build时manifest明确为NOT_BUILT。
 - 获得窗口后构建`docker build -t flower-app:$(git rev-parse HEAD) backend`，拉取Compose指定的PG/proxy镜像，重新生成`--inspect-images`清单。清单保存三个image ID，release.env将PG/proxy锁定为ID。
@@ -128,4 +128,4 @@ production 必须使用有效 HTTPS 域名。
 - 首次部署前，先仅启动Flower PG，导出空库/已有数据备份，再做显式migration。生产发布所需`verified-backup.json`必须对应当次已验证备份及独立恢复记录，不得以空占位文件替代。
 - `scripts/preflight.py <private-output> --compare <before>`只在正式窗口运行；原始网络信息与Nginx哈希记录应保持私有，脱敏后才进入evidence。
 
-当前开发环境已运行真实PostgreSQL备份/独立恢复测试，但Docker build、Compose config/runtime、生产timer、真实域名和上一镜像回滚仍为NOT_RUN/BLOCKED。
+Docker构建、Compose运行、显式迁移、生产timer、HTTPS域名、独立库恢复及上一镜像无构建回滚已于2026-09-22/23实际运行，见`evidence/deploy/`。实际Provider、微信教育版真机、异地备份和实体泵仍以`BLOCKERS.md`为准。

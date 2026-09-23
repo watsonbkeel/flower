@@ -7,11 +7,11 @@
 | B01 | 首次安装 Docker 与宿主网络变更授权 | Docker 26.1.5、Compose 2.26.1、Flower 独立容器网络已部署并完成前后检查 | RESOLVED |
 | B02 | `flower.bkeel.com` DNS、TLS | 解析 43.161.224.25；受信任证书及续期演练、HTTPS 健康均通过；微信合法域名另见 B09 | RESOLVED |
 | B03 | 微信教育版项目 AppID、AppSecret、订阅消息模板/权限 | 真实微信登录与推送 | BLOCKED_EXTERNAL |
-| B04 | Flower 专用识别、园艺检索、LLM、天气真实服务的规范化 HTTPS 网关或各原生 API 凭据、模型、预算 | 真实 AI 调用与额度验收；生产仅 Mock 且 Mock 登录被拒绝 | BLOCKED_EXTERNAL |
+| B04 | Flower 专用识别、园艺检索、LLM、天气真实服务的规范化 HTTPS 网关或各原生 API 凭据、模型、预算 | 2026-09-23复核生产仍为 `PROVIDER_MODE=mock`、网关URL/key缺失；HTTP来源边界和生产发布已验，真实调用与额度仍未验 | BLOCKED_EXTERNAL |
 | B05 | 树莓派实物接线、泵/滴漏/土壤标定 | 自动守护物理验收 | BLOCKED_PHYSICAL |
 | B06 | 异地备份目标与可用访问方式 | 本机备份恢复通过，异地灾备验收 | BLOCKED_EXTERNAL |
 | B07 | 用户发起的 aibot 真实语音高峰测试时段 | 共存容量和真实语音延迟最终验收 | BLOCKED_EXTERNAL |
-| B09 | 微信教育版控制台合法 request/upload/download 域名、真实 AppID 导入、DevTools、手机授权/发布 | 原生小程序登录、发布和订阅消息端到端验收 | BLOCKED_EXTERNAL |
+| B09 | 微信教育版控制台合法 request/upload/download 域名、真实 AppID 导入、DevTools、手机授权/发布 | 2026-09-23服务器再次验证HTTPS及未配微信时登录返回503；教育版项目能力/权限、原生小程序登录、发布和订阅送达仍须账号控制台和真机核验 | BLOCKED_EXTERNAL |
 | B10 | GitHub 源码发布 | `watsonbkeel/flower` 的 `main` 已创建并推送；临时凭据已删除 | RESOLVED |
 
 开发代理应先用 Mock/独立测试环境推进，不得把这些未完成项伪装成 PASS。

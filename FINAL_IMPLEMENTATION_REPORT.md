@@ -7,7 +7,7 @@
 - 规格：v2.2.2 Server-Integrated。
 - SHA-256：`4481d48605aec47660d2cdefb7a004ed2169bb8531302ecdf803c3c12718cf95`，冻结文档未修改。
 - 开发地址：`http://127.0.0.1:18082/preview/`，只监听环回，明确Mock设备/数据。
-- 生产地址：`https://flower.bkeel.com`；当前release：`/srv/flower/releases/208d0548ec7b9db27aa8e94c14412dbd7f466d1e`；镜像ID及证据见`evidence/deploy/2026-09-22-final-release.md`；Pi实物运行版本未取得。
+- 生产地址：`https://flower.bkeel.com`；当前release：`/srv/flower/releases/bbb19b8e7eed52ce5d7aa61edd22681a6b129948`；应用镜像ID `sha256:32fff6a41fabd7b83c86a23b6a81413e30a4f8a47f605f81bd933bea048e1aa3`，最新生产证据见`evidence/deploy/2026-09-23-provider-release.md`；Pi实物运行版本未取得。
 - 小程序源码：`miniapp`，版本2.2.2；真实微信DevTools/手机未验收。
 - 源码Stage提交：0 `eb90011`，1 `9491260`，2 `82ef59a`，3 `8c649c7`，4 `31959ac`，5 `183f75f`，6 `98f02c4`，7 `25455c5`，8 `7b32770`；交付复核修复见本报告所在提交。
 
@@ -39,6 +39,7 @@ Compose项目为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 | `npm --prefix miniapp test` | PASS，13项 | [Node执行记录](evidence/stage8-species-photo-node-green.tap) |
 | 本轮完整PostgreSQL回归、小程序原生测试 | PASS，225项Python、14项Node；含备份轮转失败测试先行 | [生产终检](evidence/deploy/2026-09-22-final-release.md) |
 | HTTP Provider真实来源校验增量 | PASS，231项Python/14项Node，MockTransport故障注入；真实Provider调用仍BLOCKED | [来源验证](evidence/stage8-provider-provenance.md) |
+| `bbb19b8`固定镜像、显式迁移、前后备份独立恢复与无构建双向回滚 | PASS，仅Flower软件发布和空上传数据；真实AI/微信/硬件未验 | [生产发布](evidence/deploy/2026-09-23-provider-release.md) |
 | 识别候选排序、重拍选择清除、手动/候选切换、低置信度提示 | PASS，Mock，桌面/手机 | [识别确认](evidence/stage8-recognition.md) |
 | Playwright桌面1440x1000、手机390x844六页面/图像/canvas/溢出 | PASS，Mock | [浏览器检查](evidence/stage5-browser.json) |
 | 浏览器pending到succeeded、养护确认、记忆规则、自动开关 | PASS，Mock | [工作流](evidence/stage8-browser-workflow.json) |
@@ -184,6 +185,8 @@ Worker持续维护主控植物的有效fallback策略，默认提前86400秒续�
 ## 9. 尚未完成与恢复路径
 
 已解除B01生产授权、B02 DNS/TLS和B10 GitHub发布。剩余`BLOCKERS.md` B03/B04/B05/B06/B07/B08/B09：微信教育版控制台/真机、真实Provider网关与预算、实物与标定规则、异地备份及共享宿主真实语音高峰。B08冻结规格内部1秒maintenance上限与10秒流量标定要求的矛盾只暂停实际标定开泵路径。完整Git历史已推送至公开仓库`watsonbkeel/flower`的`main`；一次性凭据未写入远端、Git配置、提交或证据，临时文件已删除。
+
+2026-09-23来源边界修复已经以固定 `bbb19b8...` release 上线：证书、迁移、鉴权、备份独立恢复、无构建回滚与共享宿主闲时共存复验见[本轮部署证据](evidence/deploy/2026-09-23-provider-release.md)。这不改变生产 `PROVIDER_MODE=mock`、微信教育版与实物的阻塞状态；新报告提交之后的 Git HEAD 为文档提交，不是另一次生产镜像发布。
 
 下一步无需重做服务器全面审计或重复已验生产发布。外部凭据经`/srv/flower/shared/config/production.env`注入后重新运行真实Provider/微信联调并验收；硬件按`docs/OFFLINE_DEMO.md`补采测量；B06提供异地备份目的地。生产保持Mock Provider直到真实服务证据成立，凭据禁止进入Git。
 

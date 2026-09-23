@@ -18,7 +18,8 @@
 - 原生微信客户端改为正式 HTTPS 和真实 wx.login 默认值；无教育版 AppID/AppSecret/控制台和真实 Provider 网关凭据，仍需用户输入；不会把 Mock 服务标为真实 AI。
 - 生产当前 release 为 `208d0548ec7b9db27aa8e94c14412dbd7f466d1e`；连续两次定时备份后跨 release 保留有效，最新归档已独立恢复；无构建短时切旧版并切回，新版现行。最后验收见 `evidence/deploy/2026-09-22-final-release.md`。完整 GOAL 仍因 `BLOCKERS.md` 中真实AI/微信/硬件/异地备份/语音高峰受阻。
 - GitHub `https://github.com/watsonbkeel/flower.git` 已配置为 origin，完整历史已推送至 `main`；首次公开核验为 `3e14189ce7b971f65bb7c18127b5441003576b5e`。一次性 PAT/askpass 临时文件已删除，远端和提交中均未保存凭据。最终状态提交完成后再次推送并核验。
-- 2026-09-23 Provider 来源边界复核：HTTP 网关检索、天气、通知回执只接受真实来源，混合检索拒绝，Mock 通知不能被记为真实送达；真实网关凭据仍缺失，验收只为模拟 HTTP 契约。231项Python/14项Node通过，1条上游弃用警告；见 `evidence/stage8-provider-provenance.md`。发布前实时快照已保存于私有 `.runtime/preflight-provider-before.json`，固定 SHA 生产发布仍待本轮流程执行。
+- 2026-09-23 Provider 来源边界复核：HTTP 网关检索、天气、通知回执只接受真实来源，混合检索拒绝，Mock 通知不能被记为真实送达；真实网关凭据仍缺失，验收只为模拟 HTTP 契约。231项Python/14项Node通过，1条上游弃用警告；见 `evidence/stage8-provider-provenance.md`。发布前实时快照已保存于私有 `.runtime/preflight-provider-before.json`，随后发布流程见下条。
+- 2026-09-23 Provider 来源修复版 `bbb19b8e7eed52ce5d7aa61edd22681a6b129948` 已按生产授权发布：发布前旧版备份/独立库恢复通过，构建固定SHA镜像并显式迁移；新版运行时公网 `/health` 和 `/ready` 为200，迁移 `0003_retention`。新版备份再次独立恢复、镜像归档校验和保存、旧版无构建回滚并切回新版均通过。City Front公网200，Nginx/aibot/VPN/SSH保持运行；真实Provider、微信真机、实物、异地备份和真实语音高峰仍BLOCKED。见 `evidence/deploy/2026-09-23-provider-release.md`。
 
 ## 已完成
 
@@ -84,7 +85,7 @@
 - Debian 13；2 vCPU；约 7.5 GiB RAM；约 71 GiB 可用磁盘（审计时）
 - Nginx 已占用 80/443
 - aibot `nox-brain.service` 从 `/opt/asist-embodiment/brain` 运行
-- 当前未发现 Docker/PostgreSQL 运行时
+- 2026-09-13 审计时未发现 Docker/PostgreSQL 运行时；2026-09-22 已安装 Docker 并部署 Flower 专用 PostgreSQL，当前以本文件生产恢复记录为准
 - Tailscale、OpenVPN 均运行
 
 所有数值需在正式部署窗口前重新取快照。
