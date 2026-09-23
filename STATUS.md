@@ -18,6 +18,7 @@
 - 原生微信客户端改为正式 HTTPS 和真实 wx.login 默认值；无教育版 AppID/AppSecret/控制台和真实 Provider 网关凭据，仍需用户输入；不会把 Mock 服务标为真实 AI。
 - 生产当前 release 为 `208d0548ec7b9db27aa8e94c14412dbd7f466d1e`；连续两次定时备份后跨 release 保留有效，最新归档已独立恢复；无构建短时切旧版并切回，新版现行。最后验收见 `evidence/deploy/2026-09-22-final-release.md`。完整 GOAL 仍因 `BLOCKERS.md` 中真实AI/微信/硬件/异地备份/语音高峰受阻。
 - GitHub `https://github.com/watsonbkeel/flower.git` 已配置为 origin，完整历史已推送至 `main`；首次公开核验为 `3e14189ce7b971f65bb7c18127b5441003576b5e`。一次性 PAT/askpass 临时文件已删除，远端和提交中均未保存凭据。最终状态提交完成后再次推送并核验。
+- 2026-09-23 Provider 来源边界复核：HTTP 网关检索、天气、通知回执只接受真实来源，混合检索拒绝，Mock 通知不能被记为真实送达；真实网关凭据仍缺失，验收只为模拟 HTTP 契约。231项Python/14项Node通过，1条上游弃用警告；见 `evidence/stage8-provider-provenance.md`。发布前实时快照已保存于私有 `.runtime/preflight-provider-before.json`，固定 SHA 生产发布仍待本轮流程执行。
 
 ## 已完成
 

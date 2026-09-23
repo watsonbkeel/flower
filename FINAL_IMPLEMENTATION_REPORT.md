@@ -38,6 +38,7 @@ Compose项目为独立`flower-prod`，生产只发布`127.0.0.1:18080`；API/PG�
 | 天气缓存刷新、失败重试、上下文变更与降雨输入 | PASS，11项，Mock Provider/独立Worker子进程 | [天气复核](evidence/stage8-weather.md) |
 | `npm --prefix miniapp test` | PASS，13项 | [Node执行记录](evidence/stage8-species-photo-node-green.tap) |
 | 本轮完整PostgreSQL回归、小程序原生测试 | PASS，225项Python、14项Node；含备份轮转失败测试先行 | [生产终检](evidence/deploy/2026-09-22-final-release.md) |
+| HTTP Provider真实来源校验增量 | PASS，231项Python/14项Node，MockTransport故障注入；真实Provider调用仍BLOCKED | [来源验证](evidence/stage8-provider-provenance.md) |
 | 识别候选排序、重拍选择清除、手动/候选切换、低置信度提示 | PASS，Mock，桌面/手机 | [识别确认](evidence/stage8-recognition.md) |
 | Playwright桌面1440x1000、手机390x844六页面/图像/canvas/溢出 | PASS，Mock | [浏览器检查](evidence/stage5-browser.json) |
 | 浏览器pending到succeeded、养护确认、记忆规则、自动开关 | PASS，Mock | [工作流](evidence/stage8-browser-workflow.json) |

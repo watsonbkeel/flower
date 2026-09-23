@@ -26,6 +26,11 @@ class RecognitionResult(StrictModel):
     source_type: SourceType
 
 
+class NotificationResult(StrictModel):
+    status: Literal["sent", "mock"]
+    source_type: SourceType
+
+
 class MockProviders:
     def __init__(self):
         self.data = json.loads(
@@ -143,10 +148,13 @@ class HTTPProviders:
                 "terms": ["container", "watering", "temperature", "soil moisture", "season"],
             },
         )
-        return [
+        sources = [
             CareSource.model_validate(source).model_dump(mode="json")
             for source in response["sources"]
         ]
+        if any(source["source_type"] != "real" for source in sources):
+            raise DomainError("PROVIDER_SOURCE_MISMATCH")
+        return sources
 
     def structure_care(self, sources):
         from flower.services.knowledge import Knowledge
@@ -167,7 +175,10 @@ class HTTPProviders:
         result = self.call(
             "weather", {key: plant.get(key) for key in ("city", "latitude", "longitude")}
         )
-        return Weather.model_validate(result).model_dump(mode="json")
+        weather = Weather.model_validate(result)
+        if weather.source_type != "real":
+            raise DomainError("PROVIDER_SOURCE_MISMATCH")
+        return weather.model_dump(mode="json")
 
     def structure_memory(self, text):
         from flower.services.knowledge import MemoryRule
@@ -183,7 +194,10 @@ class HTTPProviders:
         return MemoryRule.model_validate(result).model_dump(mode="json")
 
     def notify(self, message):
-        return self.call("notify", message)
+        result = NotificationResult.model_validate(self.call("notify", message))
+        if result.status != "sent" or result.source_type != "real":
+            raise DomainError("PROVIDER_SOURCE_MISMATCH")
+        return result.model_dump(mode="json")
 
 
 def providers(settings, sessions):
